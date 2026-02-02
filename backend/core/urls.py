@@ -1,0 +1,11 @@
+from django.contrib import admin
+from django.urls import path, include
+from .views import api_root
+
+urlpatterns = [
+    path("", api_root, name="api-root"),
+    path("admin/", admin.site.urls),
+    path("api/users/", include("users.urls")),
+    path("api/orders/", include("orders.urls")),
+    path("api/logistics/", include("logistics.urls")),
+]

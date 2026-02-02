@@ -1,65 +1,183 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { motion } from "framer-motion";
+import { ArrowRight, Trophy, Clock, Truck } from "lucide-react";
+import Link from "next/link";
+import Typewriter from "@/components/ui/Typewriter";
+
+const features = [
+  {
+    icon: Trophy,
+    title: "Premium Care",
+    desc: "Expert handling for all fabrics",
+  },
+  {
+    icon: Clock,
+    title: "Fast Service",
+    desc: "24-48 hour turnaround",
+  },
+  {
+    icon: Truck,
+    title: "Free Pickup",
+    desc: "We come to your door",
+  },
+];
+
+const taglines = [
+  "Luxury, quietly executed.",
+  "Your time, handled with care.",
+  "For wardrobes that command respect.",
+  "Time saved. Standards raised.",
+];
+
+export default function HomePage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="page-content">
+      {/* Hero Section */}
+      <section className="section" style={{ paddingTop: "80px" }}>
+        <div className="container">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center"
+            style={{ maxWidth: "600px", margin: "0 auto" }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <p className="text-label" style={{ marginBottom: "16px" }}>
+              Luxury Laundry Service
+            </p>
+
+            <h1 className="text-display" style={{ marginBottom: "16px" }}>
+              Effortless care for your finest
+            </h1>
+
+            {/* Typewriter Tagline */}
+            <div
+              style={{
+                minHeight: "2.5rem",
+                marginBottom: "24px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Typewriter
+                phrases={taglines}
+                typingSpeed={70}
+                deletingSpeed={40}
+                pauseDuration={2000}
+                className="text-body"
+              />
+            </div>
+
+            <p className="text-body" style={{ marginBottom: "32px" }}>
+              Premium garment care that respects your time and your wardrobe.
+            </p>
+
+            <div
+              className="flex items-center justify-center gap-3"
+              style={{ flexWrap: "wrap" }}
+            >
+              <Link href="/orders">
+                <button className="btn btn-primary btn-lg">
+                  Place Order
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </Link>
+              <Link href="/history">
+                <button className="btn btn-secondary btn-lg">
+                  Track Order
+                </button>
+              </Link>
+            </div>
+          </motion.div>
         </div>
-      </main>
+      </section>
+
+      {/* Features */}
+      <section className="section">
+        <div className="container">
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <p
+              className="text-label text-center"
+              style={{ marginBottom: "12px" }}
+            >
+              Why Choose Us
+            </p>
+            <h2
+              className="text-title text-center"
+              style={{ marginBottom: "40px" }}
+            >
+              The Abba difference
+            </h2>
+
+            <div className="grid-auto">
+              {features.map((feature, i) => (
+                <motion.div
+                  key={feature.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="card text-center"
+                >
+                  <div
+                    className="icon-box"
+                    style={{
+                      margin: "0 auto 16px",
+                      background: "var(--bg-elevated)",
+                    }}
+                  >
+                    <feature.icon className="w-5 h-5" strokeWidth={1.5} />
+                  </div>
+                  <h3 className="text-heading" style={{ marginBottom: "8px" }}>
+                    {feature.title}
+                  </h3>
+                  <p className="text-small">{feature.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="section-sm">
+        <div className="container">
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="card text-center"
+            style={{ padding: "48px 24px" }}
+          >
+            <h2 className="text-title" style={{ marginBottom: "12px" }}>
+              Ready to get started?
+            </h2>
+            <p
+              className="text-body"
+              style={{
+                marginBottom: "24px",
+                maxWidth: "400px",
+                margin: "0 auto 24px",
+              }}
+            >
+              Join thousands who trust us with their garments.
+            </p>
+            <Link href="/orders">
+              <button className="btn btn-primary">
+                Start Your First Order
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </Link>
+          </motion.div>
+        </div>
+      </section>
     </div>
   );
 }
