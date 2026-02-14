@@ -1,21 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import {
-  motion,
-  AnimatePresence,
-  useScroll,
-  useTransform,
-} from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Bike,
   CheckCircle,
   Clock,
   MapPin,
   Phone,
-  User as UserIcon,
   Power,
-  ChevronRight,
   ArrowRight,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
@@ -47,7 +40,7 @@ export default function RiderDashboard() {
 
   useEffect(() => {
     if (user) {
-      setIsOnline(user.is_online);
+      setIsOnline(user.is_online ?? false);
     }
   }, [user]);
 
@@ -81,18 +74,12 @@ export default function RiderDashboard() {
     }
   };
 
-  const updateTaskStatus = async (
-    orderId: string,
-    currentStatus: TaskStatus,
-  ) => {
+  const updateTaskStatus = async (orderId: string, currentStatus: TaskStatus) => {
     try {
       let endpoint = "";
-      if (currentStatus === "ASSIGNED")
-        endpoint = `/logistics/rider/accept/${orderId}/`;
-      else if (currentStatus === "ACCEPTED")
-        endpoint = `/logistics/rider/pickup/${orderId}/`;
-      else if (currentStatus === "READY")
-        endpoint = `/logistics/rider/deliver/${orderId}/`;
+      if (currentStatus === "ASSIGNED") endpoint = `/logistics/rider/accept/${orderId}/`;
+      else if (currentStatus === "ACCEPTED") endpoint = `/logistics/rider/pickup/${orderId}/`;
+      else if (currentStatus === "READY") endpoint = `/logistics/rider/deliver/${orderId}/`;
 
       if (endpoint) {
         await apiRequest(endpoint, { method: "POST" });
@@ -167,8 +154,7 @@ export default function RiderDashboard() {
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold">New Assignments</h2>
                 <span className="badge badge-accent">
-                  {activeTasks.filter((t) => t.status !== "DELIVERED").length}{" "}
-                  Active
+                  {activeTasks.filter((t) => t.status !== "DELIVERED").length} Active
                 </span>
               </div>
 
@@ -187,9 +173,7 @@ export default function RiderDashboard() {
                           <Bike className="w-6 h-6" />
                         </div>
                         <div>
-                          <h3 className="font-bold text-lg">
-                            {task.customer_name}
-                          </h3>
+                          <h3 className="font-bold text-lg">{task.customer_name}</h3>
                           <p className="text-xs text-muted font-mono uppercase tracking-wider">
                             {task.order_id} • {task.customer_id}
                           </p>
@@ -220,9 +204,7 @@ export default function RiderDashboard() {
                     <div className="!pt-4 border-t border-white/5">
                       {task.status !== "DELIVERED" ? (
                         <button
-                          onClick={() =>
-                            updateTaskStatus(task.order_id, task.status)
-                          }
+                          onClick={() => updateTaskStatus(task.order_id, task.status)}
                           className="btn btn-primary w-full flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
                           disabled={task.status === "PICKED_UP"}
                         >
@@ -241,9 +223,7 @@ export default function RiderDashboard() {
                   </motion.div>
                 ))}
                 {activeTasks.length === 0 && !isLoading && (
-                  <div className="text-center !py-12 text-muted">
-                    No active assignments found.
-                  </div>
+                  <div className="text-center !py-12 text-muted">No active assignments found.</div>
                 )}
                 {isLoading && (
                   <div className="text-center !py-12 text-muted animate-pulse">
@@ -261,12 +241,9 @@ export default function RiderDashboard() {
           <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center !mx-auto">
             <Clock className="w-10 h-10 text-muted/30" />
           </div>
-          <h3 className="text-lg font-medium text-muted">
-            Awaiting your availability
-          </h3>
+          <h3 className="text-lg font-medium text-muted">Awaiting your availability</h3>
           <p className="max-w-xs !mx-auto text-sm text-muted/50">
-            Once you go online, your pending assignments will appear here
-            automatically.
+            Once you go online, your pending assignments will appear here automatically.
           </p>
         </div>
       )}
