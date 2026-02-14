@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -15,13 +16,11 @@ import {
   Menu,
   X,
   Bike,
+  Star,
+  MessageSquare,
 } from "lucide-react";
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -49,7 +48,10 @@ export default function AdminLayout({
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
     { href: "/admin/riders", label: "Riders", icon: Bike },
+    { href: "/admin/ambassadors", label: "Ambassadors", icon: Users },
     { href: "/admin/users", label: "Users", icon: Users },
+    { href: "/admin/reviews", label: "Reviews", icon: Star },
+    { href: "/admin/complaints", label: "Complaints", icon: MessageSquare },
     { href: "/admin/settings", label: "Settings", icon: Settings },
   ];
 
@@ -67,10 +69,15 @@ export default function AdminLayout({
       >
         <div className="flex flex-col h-full p-4">
           {/* Header */}
-          <div className="flex items-center gap-3 mb-8 px-2 overflow-hidden relative min-h-[40px]">
-            <div className="shrink-0 w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-              <div className="w-5 h-5 bg-white rounded-sm opacity-90" />
-            </div>
+          <div className="flex items-center gap-3 mb-8 mt-10 px-2 overflow-hidden relative min-h-[40px]">
+            <Image
+              src="/logo/AbbaEzwash.png"
+              alt="Abba EZWash Logo"
+              width={180}
+              height={72}
+              className="h-18 w-auto object-contain"
+              priority
+            />{" "}
             <AnimatePresence>
               {isSidebarOpen && (
                 <motion.div
@@ -88,7 +95,6 @@ export default function AdminLayout({
                 </motion.div>
               )}
             </AnimatePresence>
-
             {/* Toggle Button */}
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -97,9 +103,9 @@ export default function AdminLayout({
               }`}
             >
               {isSidebarOpen ? (
-                <ChevronRight className="w-4 h-4 rotate-180" />
+                <ChevronRight className="w-6 h-6 rotate-180" />
               ) : (
-                <Menu className="w-4 h-4" />
+                <Menu className="w-6 h-6" />
               )}
             </button>
           </div>
@@ -114,14 +120,14 @@ export default function AdminLayout({
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative overflow-hidden ${
+                  className={`flex items-center gap-3 !px-3 !py-2.5 rounded-lg transition-all group relative overflow-hidden ${
                     isActive
                       ? "bg-white/10 text-white"
                       : "text-muted hover:bg-white/5 hover:text-white"
                   }`}
                 >
                   <Icon
-                    className={`w-4 h-4 shrink-0 transition-colors ${
+                    className={`w-6 h-6 shrink-0 transition-colors ${
                       isActive ? "text-white" : "group-hover:text-white"
                     }`}
                   />
@@ -141,49 +147,53 @@ export default function AdminLayout({
               );
             })}
           </nav>
-
-          {/* Footer User */}
-          <div className="mt-auto pt-4 border-t border-white/5">
-            <button
-              onClick={logout}
-              className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-muted hover:bg-red-500/10 hover:text-red-400 transition-all"
-            >
-              <LogOut className="w-4 h-4 shrink-0" />
-              <AnimatePresence>
-                {isSidebarOpen && (
-                  <motion.span
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="font-medium text-sm whitespace-nowrap"
-                  >
-                    Logout
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </button>
+          {/* Footer User spacer */}
+          <div className="mt-auto !pt-4 border-t border-white/5 opacity-0">
+            <div className="h-10"></div>
           </div>
         </div>
       </motion.aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#050505] lg:pt-[var(--nav-height)]">
+      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#050505]">
         {/* Mobile Header (Visible only on small screens) */}
         <div className="md:hidden flex items-center justify-between p-4 border-b border-white/10 bg-black/50 backdrop-blur-xl sticky top-0 z-30">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <div className="w-4 h-4 bg-white rounded-sm" />
-            </div>
+            <Image
+              src="/logo/AbbaEzwash.png"
+              alt="Abba EZWash Logo"
+              width={180}
+              height={72}
+              className="h-18 w-auto object-contain"
+              priority
+            />{" "}
             <span className="font-bold">Abba Admin</span>
           </div>
-          <button className="p-2 rounded-lg bg-white/5">
-            <Menu className="w-5 h-5" />
-          </button>
         </div>
 
         {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-8 lg:p-10">
-          <div className="max-w-7xl mx-auto w-full">{children}</div>
+        <div className="flex-1 overflow-y-auto custom-scrollbar !p-6 md:!p-8 lg:!p-10 !pb-36 md:!pb-10">
+          <div className="max-w-7xl !mx-auto !w-full">{children}</div>
+        </div>
+
+        {/* Mobile Bottom Navigation */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-black/80 backdrop-blur-xl border-t border-white/10 flex items-center justify-around !px-2 z-40">
+          {links.map((link) => {
+            const Icon = link.icon;
+            const isActive = pathname === link.href;
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`flex flex-col items-center gap-1 !p-2 transition-all ${
+                  isActive ? "text-primary scale-110" : "text-muted"
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="text-[10px] font-bold uppercase tracking-tight">{link.label}</span>
+              </Link>
+            );
+          })}
         </div>
       </main>
     </div>

@@ -39,10 +39,11 @@ class UserSerializer(serializers.ModelSerializer):
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
+    referral_code = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password', 'phone_number', 'role', 'location')
+        fields = ('username', 'email', 'password', 'phone_number', 'role', 'location', 'referral_code')
 
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():
@@ -61,17 +62,35 @@ class RegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Phone number already exists.")
         return value
 
+    def validate_referral_code(self, value):
+        if value:
+            from users.models import AmbassadorProfile
+            if not AmbassadorProfile.objects.filter(referral_code=value).exists():
+                raise serializers.ValidationError("Invalid referral code.")
+        return value
+
     def create(self, validated_data):
+        referral_code = validated_data.pop('referral_code', None)
         phone_number = validated_data.get('phone_number')
         if not phone_number:
             phone_number = None
             
+        referred_by = None
+        if referral_code:
+            from users.models import AmbassadorProfile
+            try:
+                ambassador_profile = AmbassadorProfile.objects.get(referral_code=referral_code)
+                referred_by = ambassador_profile.user
+            except AmbassadorProfile.DoesNotExist:
+                pass
+
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
             password=validated_data['password'],
             phone_number=phone_number,
             role=validated_data.get('role', 'CUSTOMER'),
-            location=validated_data.get('location', {})
+            location=validated_data.get('location', {}),
+            referred_by=referred_by
         )
         return user

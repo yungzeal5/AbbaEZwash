@@ -22,6 +22,13 @@ class User(AbstractUser):
     is_online = models.BooleanField(default=False)
     custom_id = models.CharField(max_length=20, unique=True, null=True, blank=True)
     streak_count = models.IntegerField(default=0)
+    referred_by = models.ForeignKey(
+        'self', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='referrals'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -40,12 +47,8 @@ class User(AbstractUser):
             self.Role.AMBASSADOR: 'DB',
             self.Role.SUPER_ADMIN: 'SD'
         }
-        prefix = prefix_map.get(self.role, 'US') # Fallback if unknown
+        prefix = prefix_map.get(self.role, 'US')
         import uuid
-        # Generating a unique 8 digit number. 
-        # Using uuid to ensure uniqueness and taking first 8 digits of int representation
-        # Ideally, we would use a sequence or check for collision, 
-        # but for this scale, uuid segment is sufficient.
         unique_suffix = str(uuid.uuid4().int)[:8]
         return f"{prefix}{unique_suffix}"
 
@@ -75,11 +78,24 @@ class RiderProfile(models.Model):
 
 class AmbassadorProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='ambassador_profile')
-    referral_code = models.CharField(max_length=20, unique=True, null=True, blank=True)
-    commission_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
+    referral_code = models.CharField(max_length=6, unique=True, null=True, blank=True)
+    commission_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0.05)
     
+    def save(self, *args, **kwargs):
+        if not self.referral_code:
+            self.referral_code = self.generate_referral_code()
+        super().save(*args, **kwargs)
+
+    def generate_referral_code(self):
+        import random
+        import string
+        while True:
+            code = ''.join(random.choices(string.digits, k=6))
+            if not AmbassadorProfile.objects.filter(referral_code=code).exists():
+                return code
+
     def __str__(self):
-        return f"Ambassador: {self.user.username}"
+        return f"Ambassador: {self.user.username} ({self.referral_code})"
 
 
 class AdminProfile(models.Model):

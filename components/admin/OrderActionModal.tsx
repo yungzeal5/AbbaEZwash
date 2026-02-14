@@ -106,7 +106,7 @@ export default function OrderActionModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex items-center justify-center !p-4 bg-black/60 backdrop-blur-sm">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -114,7 +114,7 @@ export default function OrderActionModal({
           className="bg-[#1a1a1a] border border-white/10 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-white/10 bg-white/5">
+          <div className="flex items-center justify-between !p-4 border-b border-white/10 bg-white/5">
             <h3 className="font-bold text-lg text-white">
               {action === "ACCEPT" && "Accept Order"}
               {action === "ASSIGN" && "Assign Rider"}
@@ -122,15 +122,15 @@ export default function OrderActionModal({
             </h3>
             <button
               onClick={onClose}
-              className="p-1 rounded-full hover:bg-white/10 transition-colors"
+              className="!p-1 rounded-full hover:bg-white/10 transition-colors"
             >
               <X className="w-5 h-5 text-muted" />
             </button>
           </div>
 
-          <div className="p-6 space-y-6">
-            <div className="bg-white/5 p-3 rounded-lg border border-white/5">
-              <p className="text-xs text-muted mb-1">Order ID</p>
+          <div className="!p-6 space-y-6">
+            <div className="bg-white/5 !p-3 rounded-lg border border-white/5">
+              <p className="text-xs text-muted !mb-1">Order ID</p>
               <p className="font-mono font-bold text-gold">#{order.order_id}</p>
             </div>
 
@@ -145,14 +145,14 @@ export default function OrderActionModal({
                 )}
 
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">
+                  <label className="block text-sm font-medium text-white !mb-2">
                     Assign Rider {action === "ACCEPT" && "(Optional)"}
                   </label>
-                  <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                  <div className="space-y-2 max-h-48 overflow-y-auto !pr-2 custom-scrollbar">
                     {riders.map((rider) => (
                       <label
                         key={rider.id}
-                        className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                        className={`flex items-center gap-3 !p-3 rounded-xl border cursor-pointer transition-all ${
                           selectedRider === String(rider.id)
                             ? "bg-primary/20 border-primary"
                             : "bg-white/5 border-transparent hover:bg-white/10"
@@ -182,7 +182,7 @@ export default function OrderActionModal({
                       </label>
                     ))}
                     {riders.length === 0 && (
-                      <p className="text-sm text-muted text-center py-4">
+                      <p className="text-sm text-muted text-center !py-4">
                         No available riders found.
                       </p>
                     )}
@@ -193,13 +193,13 @@ export default function OrderActionModal({
 
             {action === "STATUS" && (
               <div>
-                <label className="block text-sm font-medium text-white mb-2">
+                <label className="block text-sm font-medium text-white !mb-2">
                   New Status
                 </label>
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="w-full bg-black border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary"
+                  className="w-full bg-black border border-white/20 rounded-xl !px-4 !py-3 text-white focus:outline-none focus:border-primary"
                 >
                   <option value="">Select Status</option>
                   {validStatuses.map((status) => (
@@ -214,23 +214,23 @@ export default function OrderActionModal({
             {/* Note Field */}
             {action !== "ASSIGN" && (
               <div>
-                <label className="block text-sm font-medium text-white mb-2">
+                <label className="block text-sm font-medium text-white !mb-2">
                   Note (Internal)
                 </label>
                 <textarea
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  className="w-full bg-black border border-white/20 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary min-h-[80px]"
+                  className="w-full bg-black border border-white/20 rounded-xl !px-4 !py-3 text-white text-sm focus:outline-none focus:border-primary min-h-[80px]"
                   placeholder="Add a note..."
                 />
               </div>
             )}
           </div>
 
-          <div className="p-4 border-t border-white/10 bg-white/5 flex justify-end gap-3">
+          <div className="!p-4 border-t border-white/10 bg-white/5 flex justify-end gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/10 transition-colors"
+              className="!px-4 !py-2 rounded-lg text-sm font-medium text-white hover:bg-white/10 transition-colors"
             >
               Cancel
             </button>
@@ -241,7 +241,7 @@ export default function OrderActionModal({
                 (action === "ASSIGN" && !selectedRider) ||
                 (action === "STATUS" && !selectedStatus)
               }
-              className="px-4 py-2 rounded-lg text-sm font-medium bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
+              className="!px-4 !py-2 rounded-lg text-sm font-medium bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               Confirm

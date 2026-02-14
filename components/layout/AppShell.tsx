@@ -12,7 +12,11 @@ interface AppShellProps {
 export default function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const isExcludedRoute =
-    pathname.startsWith("/admin") || pathname.startsWith("/rider");
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/rider") ||
+    pathname.startsWith("/ambassador");
+
+  const isHomePage = pathname === "/";
 
   return (
     <div className="relative min-h-screen bg-background">
@@ -20,7 +24,7 @@ export default function AppShell({ children }: AppShellProps) {
       {!isExcludedRoute && <Navbar />}
 
       {/* Main Content */}
-      <main className="page-wrapper">{children}</main>
+      <main className={`page-wrapper ${isHomePage ? "no-padding-top" : ""}`}>{children}</main>
 
       {/* Mobile Navigation */}
       {!isExcludedRoute && <TabBar />}

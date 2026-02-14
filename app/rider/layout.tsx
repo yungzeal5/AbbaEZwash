@@ -4,12 +4,9 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import {
   LayoutDashboard,
   Bike,
-  History,
-  User as UserIcon,
   LogOut,
 } from "lucide-react";
 
@@ -47,21 +44,20 @@ export default function RiderLayout({
   const links = [
     { href: "/rider", label: "Dashboard", icon: LayoutDashboard },
     { href: "/rider/tasks", label: "Available Tasks", icon: Bike },
-    { href: "/rider/history", label: "Task History", icon: History },
-    { href: "/rider/profile", label: "Profile", icon: UserIcon },
   ];
 
   return (
-    <div className="min-h-screen bg-background text-white lg:pt-(--nav-height)">
+    <div className="min-h-screen bg-black text-white !mr-3 !ml-3">
       {/* Mobile Header */}
       <div className="lg:hidden flex items-center justify-between p-4 border-b border-white/10 bg-black/50 backdrop-blur-xl sticky top-0 z-30">
         <span className="font-bold">Rider Portal</span>
-        <button onClick={logout} className="p-2 text-red-400">
+        <button onClick={logout} className="!p-2 text-red-400">
           <LogOut className="w-5 h-5" />
         </button>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
+      {/* Main Content Area */}
+      <div className="max-w-7xl mx-auto !px-4 md:!px-6 lg:!px-8 !py-6 !pb-24 lg:!pb-6">
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
           {/* Sidebar - Large Screens */}
           <aside className="hidden lg:block space-y-6">
@@ -73,7 +69,7 @@ export default function RiderLayout({
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                    className={`flex items-center gap-3 !px-4 !py-3 rounded-xl transition-all ${
                       isActive
                         ? "bg-primary text-white"
                         : "text-muted hover:bg-white/5 hover:text-white"
@@ -88,7 +84,7 @@ export default function RiderLayout({
 
             <button
               onClick={logout}
-              className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-muted hover:bg-red-500/10 hover:text-red-400 transition-all border border-transparent hover:border-red-500/20"
+              className="flex items-center gap-3 w-full !px-4 !py-3 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-600 transition-all border border-transparent hover:border-red-500/20"
             >
               <LogOut className="w-5 h-5" />
               <span className="font-medium">Logout</span>
@@ -100,6 +96,28 @@ export default function RiderLayout({
             {children}
           </main>
         </div>
+      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-black/80 backdrop-blur-xl border-t border-white/10 flex items-center justify-around !px-2 z-40">
+        {links.map((link) => {
+          const Icon = link.icon;
+          const isActive = pathname === link.href;
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`flex flex-col items-center gap-1 !p-2 transition-all ${
+                isActive ? "text-primary scale-110" : "text-muted"
+              }`}
+            >
+              <Icon className="w-5 h-5" />
+              <span className="text-[10px] font-bold uppercase tracking-tight">
+                {link.label}
+              </span>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

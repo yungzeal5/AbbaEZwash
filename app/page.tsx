@@ -1,9 +1,10 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, Trophy, Clock, Truck } from "lucide-react";
 import Link from "next/link";
 import Typewriter from "@/components/ui/Typewriter";
+import ReviewsSection from "@/components/ui/ReviewsSection";
 
 const features = [
   {
@@ -31,34 +32,68 @@ const taglines = [
 ];
 
 export default function HomePage() {
+  const { scrollY } = useScroll();
+  const y = useTransform(scrollY, [0, 500], [0, 200]);
+
   return (
     <div className="page-content">
       {/* Hero Section */}
-      <section className="section" style={{ paddingTop: "80px" }}>
-        <div className="container">
+      <section className="relative min-h-[99vh] flex items-center overflow-hidden">
+        {/* Background Video with Parallax */}
+        <motion.div
+          style={{ y }}
+          className="absolute inset-x-0 -top-20 -bottom-20 z-0 h-[calc(100%+160px)]"
+        >
+          <video autoPlay loop muted playsInline className="w-full h-full object-cover opacity-60">
+            <source src="/BG/BGWASH.mp4" type="video/mp4" />
+          </video>
+          {/* Enhanced Overlay for readability */}
+          <div className="absolute inset-0 bg-linear-to-b from-black/70 via-black/40 to-black/80" />
+          {/* Subtle gold shimmer overlay */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.05)_0%,transparent_100%)]" />
+        </motion.div>
+
+        <div className="container relative z-10 py-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
             className="text-center"
-            style={{ maxWidth: "600px", margin: "0 auto" }}
+            style={{ maxWidth: "800px", margin: "0 auto" }}
           >
-            <p className="text-label" style={{ marginBottom: "16px" }}>
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-label"
+              style={{ marginBottom: "16px", color: "var(--gold)" }}
+            >
               Luxury Laundry Service
-            </p>
+            </motion.p>
 
-            <h1 className="text-display" style={{ marginBottom: "16px" }}>
+            <motion.h1
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="text-display"
+              style={{ marginBottom: "20px" }}
+            >
               Effortless care for your finest
-            </h1>
+            </motion.h1>
 
             {/* Typewriter Tagline */}
-            <div
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
               style={{
                 minHeight: "2.5rem",
                 marginBottom: "24px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                color: "var(--text-primary)",
+                fontWeight: 500,
               }}
             >
               <Typewriter
@@ -68,28 +103,35 @@ export default function HomePage() {
                 pauseDuration={2000}
                 className="text-body"
               />
-            </div>
+            </motion.div>
 
-            <p className="text-body" style={{ marginBottom: "32px" }}>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+              className="text-body"
+              style={{ marginBottom: "40px", fontSize: "1.1rem" }}
+            >
               Premium garment care that respects your time and your wardrobe.
-            </p>
+            </motion.p>
 
-            <div
-              className="flex items-center justify-center gap-3"
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1 }}
+              className="flex items-center justify-center gap-4"
               style={{ flexWrap: "wrap" }}
             >
               <Link href="/orders">
-                <button className="btn btn-primary btn-lg">
+                <button className="btn btn-gold btn-lg group">
                   Place Order
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </button>
               </Link>
               <Link href="/history">
-                <button className="btn btn-secondary btn-lg">
-                  Track Order
-                </button>
+                <button className="btn btn-secondary btn-lg">Track Order</button>
               </Link>
-            </div>
+            </motion.div>
           </motion.div>
         </div>
       </section>
@@ -103,17 +145,11 @@ export default function HomePage() {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <p
-              className="text-label text-center"
-              style={{ marginBottom: "12px" }}
-            >
+            <p className="text-label text-center" style={{ marginBottom: "12px" }}>
               Why Choose Us
             </p>
-            <h2
-              className="text-title text-center"
-              style={{ marginBottom: "40px" }}
-            >
-              The Abba difference
+            <h2 className="text-title text-center" style={{ marginBottom: "40px" }}>
+              ABBA EZWASH
             </h2>
 
             <div className="grid-auto">
@@ -178,6 +214,9 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
+
+      {/* Reviews Section */}
+      <ReviewsSection />
     </div>
   );
 }

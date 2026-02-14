@@ -1,10 +1,4 @@
 @import "tailwindcss";
-
-/* ========================================
-   ABBA EZWASH - Design System
-   Premium • Minimal • Responsive
-   ======================================== */
-
 :root {
   /* Brand Palette - Primary */
   --primary: #1a56db;
@@ -25,12 +19,7 @@
   --gold-hover: #e5c158;
 
   /* Gold Gradients */
-  --gold-gradient: linear-gradient(
-    135deg,
-    #d4af37 0%,
-    #f4d03f 50%,
-    #d4af37 100%
-  );
+  --gold-gradient: linear-gradient(135deg, #d4af37 0%, #f4d03f 50%, #d4af37 100%);
   --gold-gradient-subtle: linear-gradient(
     135deg,
     rgba(212, 175, 55, 0.3) 0%,
@@ -52,6 +41,7 @@
 
   /* Neutrals */
   --bg-primary: #000000;
+  --background: #000000;
   --bg-secondary: #0a0a0a;
   --bg-card: #0f0f0f;
   --bg-elevated: #161616;
@@ -97,6 +87,7 @@
 @theme inline {
   --color-primary: var(--primary);
   --color-accent: var(--accent);
+  --color-background: var(--background);
   --font-sans: "Outfit", system-ui, sans-serif;
 }
 
@@ -189,11 +180,24 @@ body {
   padding-bottom: calc(var(--tab-height) + 24px);
 }
 
+.page-wrapper {
+  min-height: 100vh;
+  padding-bottom: calc(var(--tab-height) + 24px);
+}
+
 @media (min-width: 1024px) {
   .page-content {
     padding-top: calc(var(--nav-height) + 24px);
     padding-bottom: 48px;
   }
+  .page-wrapper {
+    padding-top: calc(var(--nav-height) + 24px);
+    padding-bottom: 48px;
+  }
+}
+
+.no-padding-top {
+  padding-top: 0 !important;
 }
 
 /* Section spacing */
@@ -453,12 +457,20 @@ button {
   left: 0;
   right: 0;
   height: var(--nav-height);
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-gold);
   z-index: 100;
   display: none;
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    backdrop-filter 0.3s ease;
+}
+
+.navbar-transparent {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom-color: transparent !important;
 }
 
 @media (min-width: 1024px) {
@@ -780,4 +792,62 @@ button {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
+}
+
+/* ========================================
+   Ambassador Portal Styles
+   ======================================== */
+
+.apple-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 28px;
+  padding: 24px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.apple-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+}
+
+.apple-button-primary {
+  background: #0071e3;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 980px;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.apple-button-primary:hover {
+  background: #0077ed;
+  transform: scale(1.05);
+  box-shadow: 0 8px 16px rgba(0, 113, 227, 0.3);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #1d1d1f 0%, #424245 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.stat-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle at top right, rgba(0, 113, 227, 0.05) 0%, transparent 70%);
+  border-radius: 0 0 0 100%;
 }

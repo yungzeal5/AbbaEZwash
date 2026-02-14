@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { formatMoney } from "@/lib/currency";
 import {
   DollarSign,
   ShoppingBag,
@@ -11,6 +12,8 @@ import {
   ArrowUpRight,
   Search,
   Loader2,
+  Star,
+  MessageSquare,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -22,6 +25,8 @@ interface AdminStats {
   total_revenue: number;
   total_riders: number;
   total_customers: number;
+  reviews: number;
+  complaints: number;
 }
 
 interface Order {
@@ -31,13 +36,14 @@ interface Order {
   status: string;
   total_price: number;
   created_at: string;
-  items: any[];
+  items: Array<Record<string, unknown>>;
 }
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,10 +72,18 @@ export default function AdminDashboard() {
     );
   }
 
+  const filteredRecentOrders = recentOrders.filter((order) => {
+    const query = searchTerm.toLowerCase();
+    return (
+      order.order_id.toLowerCase().includes(query) ||
+      order.customer_name.toLowerCase().includes(query)
+    );
+  });
+
   const statCards = [
     {
       label: "Total Revenue",
-      value: `₵${stats.total_revenue.toLocaleString()}`,
+      value: formatMoney(stats.total_revenue),
       trend: "Lifetime",
       icon: DollarSign,
       color: "var(--gold)",
@@ -95,16 +109,30 @@ export default function AdminDashboard() {
       icon: Users,
       color: "#A855F7",
     },
+    {
+      label: "Total Reviews",
+      value: stats.reviews,
+      trend: "User Feedback",
+      icon: Star,
+      color: "var(--gold)",
+    },
+    {
+      label: "Complaints",
+      value: stats.complaints,
+      trend: "Needs Attention",
+      icon: MessageSquare,
+      color: "#F43F5E",
+    },
   ];
 
   return (
     <div>
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-center !pb-20 gap-4 !mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-1">Dashboard</h1>
+          <h1 className="text-3xl font-bold text-white !mb-1">Dashboard</h1>
           <p className="text-muted">
-            Welcome back, Admin. Here's what's happening today.
+            Welcome back, Admin. Here is what is happening today.
           </p>
         </div>
 
@@ -114,14 +142,16 @@ export default function AdminDashboard() {
             <input
               type="text"
               placeholder="Search..."
-              className="pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-primary w-64"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            className="!pl-10 !pr-4 !py-2 bg-white/5 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-primary w-64"
             />
           </div>
         </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 !mb-8">
         {statCards.map((stat, i) => {
           const Icon = stat.icon;
           return (
@@ -130,7 +160,7 @@ export default function AdminDashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
-              className="card glass-panel p-6 relative overflow-hidden group hover:border-white/20 transition-all"
+              className="card glass-panel !p-6 relative overflow-hidden group hover:border-white/20 transition-all"
             >
               {/* Background Glow */}
               <div
@@ -140,19 +170,19 @@ export default function AdminDashboard() {
 
               <div className="flex justify-between items-start mb-6">
                 <div
-                  className="p-3.5 rounded-2xl bg-white/5 border border-white/5 group-hover:scale-110 transition-transform duration-300"
+                  className="!p-3.5 rounded-2xl bg-white/5 border border-white/5 group-hover:scale-110 transition-transform duration-300"
                   style={{ color: stat.color }}
                 >
                   <Icon className="w-6 h-6" />
                 </div>
-                <span className="flex items-center gap-1.5 text-[10px] font-bold tracking-wide uppercase px-2.5 py-1 rounded-full bg-white/5 text-muted border border-white/5">
+                <span className="flex items-center gap-1.5 text-[10px] font-bold tracking-wide uppercase !px-2.5 !py-1 rounded-full bg-white/5 text-muted border border-white/5">
                   {stat.trend}
                   <ArrowUpRight className="w-3 h-3" />
                 </span>
               </div>
 
               <div>
-                <p className="text-muted text-sm font-medium mb-1 tracking-wide">
+                <p className="text-muted text-sm font-medium !mb-1 tracking-wide">
                   {stat.label}
                 </p>
                 <h3 className="text-3xl font-bold text-white tracking-tight">
@@ -168,10 +198,10 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Col: Platform Overview */}
         <div className="lg:col-span-2 space-y-8">
-          <div className="card glass-panel p-8">
-            <div className="flex items-center justify-between mb-8">
+          <div className="card glass-panel !p-8 !mb-8">
+            <div className="flex items-center justify-between !mb-8">
               <div>
-                <h3 className="font-bold text-xl text-white mb-1">
+                <h3 className="font-bold text-xl text-white !mb-1">
                   Platform Performance
                 </h3>
                 <p className="text-muted text-sm">
@@ -180,7 +210,7 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-8 mb-8">
+            <div className="grid grid-cols-2 gap-8 !mb-8">
               <div className="space-y-2">
                 <p className="text-muted text-sm">Total Orders</p>
                 <p className="text-2xl font-bold text-white">
@@ -199,7 +229,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Progress Bar Visual */}
-            <div className="relative h-4 bg-white/5 rounded-full overflow-hidden mb-4">
+            <div className="relative h-4 bg-white/5 rounded-full overflow-hidden !mb-4">
               <div
                 className="absolute top-0 left-0 h-full bg-primary transition-all duration-1000 ease-out rounded-full"
                 style={{
@@ -227,17 +257,52 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Another placeholder for future charts */}
-          <div className="card glass-panel p-8 flex items-center justify-center min-h-[200px] border-dashed border-2 border-white/5 bg-transparent opacity-50">
-            <p className="text-muted font-mono text-sm">
-              Revenue Analytics Module (Coming Soon)
-            </p>
+          <div className="card glass-panel !p-8 space-y-5">
+            <div>
+              <h3 className="font-bold text-xl text-white !mb-1">
+                Order Status Breakdown
+              </h3>
+              <p className="text-muted text-sm">
+                Live distribution of current order states.
+              </p>
+            </div>
+            <div className="space-y-3">
+              {[
+                { label: "Pending", value: stats.pending, color: "bg-yellow-500" },
+                {
+                  label: "In Progress",
+                  value: stats.in_progress,
+                  color: "bg-blue-500",
+                },
+                { label: "Delivered", value: stats.delivered, color: "bg-green-500" },
+              ].map((item) => {
+                const percent = Math.round(
+                  (item.value / (stats.total_orders || 1)) * 100,
+                );
+                return (
+                  <div key={item.label}>
+                    <div className="flex items-center justify-between text-sm !mb-1">
+                      <span className="text-secondary">{item.label}</span>
+                      <span className="text-white font-semibold">
+                        {item.value} ({percent}%)
+                      </span>
+                    </div>
+                    <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+                      <div
+                        className={`h-full ${item.color}`}
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
 
         {/* Right Col: Recent Activity */}
-        <div className="card glass-panel p-0 overflow-hidden h-fit sticky top-6">
-          <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+        <div className="card glass-panel !p-0 overflow-hidden h-fit sticky top-6">
+          <div className="!p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
             <h3 className="font-bold text-lg text-white">Recent Activity</h3>
             <Link
               href="/admin/orders"
@@ -248,18 +313,18 @@ export default function AdminDashboard() {
           </div>
 
           <div className="divide-y divide-white/5">
-            {recentOrders.length === 0 ? (
-              <p className="text-muted text-center py-12 text-sm">
-                No recent activity.
+            {filteredRecentOrders.length === 0 ? (
+              <p className="text-muted text-center !py-12 text-sm">
+                No matching recent activity.
               </p>
             ) : (
-              recentOrders.map((order) => (
+              filteredRecentOrders.map((order) => (
                 <Link
                   href={`/admin/orders?highlight=${order.order_id}`}
                   key={order._id}
                   className="block hover:bg-white/5 transition-colors group"
                 >
-                  <div className="p-4 flex items-center gap-4">
+                  <div className="!p-4 flex items-center gap-4">
                     <div
                       className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shadow-lg transition-transform group-hover:scale-105 ${
                         order.status === "PENDING"
@@ -272,7 +337,7 @@ export default function AdminDashboard() {
                       {order.customer_name.substring(0, 2).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-baseline mb-1">
+                      <div className="flex justify-between items-baseline !mb-1">
                         <p className="font-bold text-sm truncate text-white group-hover:text-primary transition-colors">
                           {order.customer_name}
                         </p>
@@ -285,7 +350,7 @@ export default function AdminDashboard() {
                       </div>
                       <div className="flex justify-between items-center">
                         <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                          className={`text-[10px] font-bold !px-2 !py-0.5 rounded-full border ${
                             order.status === "PENDING"
                               ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/20"
                               : order.status === "ACCEPTED"
@@ -296,7 +361,7 @@ export default function AdminDashboard() {
                           {order.status}
                         </span>
                         <span className="text-xs text-muted font-medium">
-                          ₵{order.total_price}
+                          {formatMoney(order.total_price)}
                         </span>
                       </div>
                     </div>
@@ -308,7 +373,7 @@ export default function AdminDashboard() {
             {/* View More Button */}
             <Link
               href="/admin/orders"
-              className="block p-4 text-center text-xs font-bold text-muted hover:text-white transition-colors bg-white/[0.02] hover:bg-white/5"
+              className="block !p-4 text-center text-xs font-bold text-muted hover:text-white transition-colors bg-white/[0.02] hover:bg-white/5"
             >
               VIEW ORDER HISTORY
             </Link>

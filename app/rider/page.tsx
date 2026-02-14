@@ -29,8 +29,12 @@ interface Task {
   customer_name: string;
   customer_id: string;
   phone_number: string;
-  pickup_location?: any;
-  delivery_location?: any;
+  pickup_location?: {
+    address?: string;
+  };
+  delivery_location?: {
+    address?: string;
+  };
   type: "Pickup" | "Deliver";
   status: TaskStatus;
 }
@@ -115,7 +119,7 @@ export default function RiderDashboard() {
   };
 
   return (
-    <div className="relative pb-20">
+    <div className="relative !pb-20 !pt-2.5 !mr-3 !ml-3">
       {/* Toggle Section */}
       <div
         className={`transition-all duration-500 ease-in-out ${isOnline ? "sticky top-0 z-50 pt-4 pb-4 bg-background/80 backdrop-blur-md border-b border-white/5" : "py-20 flex flex-col items-center justify-center"}`}
@@ -124,7 +128,7 @@ export default function RiderDashboard() {
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={toggleOnline}
-            className={`relative group flex items-center gap-3 px-8 py-4 rounded-full font-bold text-lg transition-all ${
+            className={`relative group flex items-center gap-3 !px-7 !py-3 rounded-full font-bold text-lg transition-all ${
               isOnline
                 ? "bg-green-500 text-white shadow-lg shadow-green-500/20"
                 : "bg-white/5 text-muted hover:bg-white/10"
@@ -173,7 +177,7 @@ export default function RiderDashboard() {
                   <motion.div
                     key={task.order_id}
                     layout
-                    className={`card p-6 border-white/5 bg-white/2 space-y-4 hover:border-primary/30 transition-colors ${task.status === "DELIVERED" ? "opacity-50 grayscale" : ""}`}
+                    className={`card !p-6 border-white/5 bg-white/2 space-y-4 hover:border-primary/30 transition-colors ${task.status === "DELIVERED" ? "opacity-50 grayscale" : ""}`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
@@ -198,7 +202,7 @@ export default function RiderDashboard() {
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 !py-2">
                       <div className="flex items-center gap-3 text-sm text-secondary">
                         <MapPin className="w-4 h-4 shrink-0" />
                         <span>
@@ -213,7 +217,7 @@ export default function RiderDashboard() {
                       </div>
                     </div>
 
-                    <div className="pt-4 border-t border-white/5">
+                    <div className="!pt-4 border-t border-white/5">
                       {task.status !== "DELIVERED" ? (
                         <button
                           onClick={() =>
@@ -228,7 +232,7 @@ export default function RiderDashboard() {
                           )}
                         </button>
                       ) : (
-                        <div className="text-center py-2 text-green-400 font-medium flex items-center justify-center gap-2">
+                        <div className="text-center !py-2 text-green-400 font-medium flex items-center justify-center gap-2">
                           <CheckCircle className="w-4 h-4" />
                           Assignment Completed
                         </div>
@@ -237,12 +241,12 @@ export default function RiderDashboard() {
                   </motion.div>
                 ))}
                 {activeTasks.length === 0 && !isLoading && (
-                  <div className="text-center py-12 text-muted">
+                  <div className="text-center !py-12 text-muted">
                     No active assignments found.
                   </div>
                 )}
                 {isLoading && (
-                  <div className="text-center py-12 text-muted animate-pulse">
+                  <div className="text-center !py-12 text-muted animate-pulse">
                     Loading assignments...
                   </div>
                 )}
@@ -253,14 +257,14 @@ export default function RiderDashboard() {
       </AnimatePresence>
 
       {!isOnline && (
-        <div className="mt-20 text-center space-y-4">
-          <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto">
+        <div className="!mt-20 text-center space-y-4">
+          <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center !mx-auto">
             <Clock className="w-10 h-10 text-muted/30" />
           </div>
           <h3 className="text-lg font-medium text-muted">
             Awaiting your availability
           </h3>
-          <p className="max-w-xs mx-auto text-sm text-muted/50">
+          <p className="max-w-xs !mx-auto text-sm text-muted/50">
             Once you go online, your pending assignments will appear here
             automatically.
           </p>

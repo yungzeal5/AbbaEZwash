@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { LogOut, User as UserIcon } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useState, useEffect } from "react";
 
 const links = [
   { href: "/", label: "Home" },
@@ -15,7 +16,23 @@ const links = [
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const isHomePage = pathname === "/";
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+
+    if (!isHomePage) return;
+
+    window.addEventListener("scroll", handleScroll);
+    // Initial check
+    handleScroll();
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isHomePage]);
 
   const getInitials = (username: string) => {
     return username.substring(0, 2).toUpperCase();
@@ -23,7 +40,7 @@ export default function Navbar() {
 
   return (
     <motion.header
-      className="navbar"
+      className={`navbar ${isHomePage && !isScrolled ? "navbar-transparent" : ""}`}
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
@@ -32,10 +49,13 @@ export default function Navbar() {
         {/* Logo */}
         <div className="flex-1 lg:flex-none flex justify-center lg:justify-start">
           <Link href="/" className="flex items-center gap-3">
-            <img
+            <Image
               src="/logo/AbbaEzwash.png"
               alt="Abba EZWash Logo"
+              width={180}
+              height={72}
               className="h-18 w-auto object-contain"
+              priority
             />
           </Link>
         </div>
@@ -57,7 +77,25 @@ export default function Navbar() {
               className={`nav-link ${pathname.startsWith("/admin") ? "active" : ""}`}
               style={{ color: "var(--accent)" }}
             >
+              Admin
+            </Link>
+          )}
+          {user?.role === "AMBASSADOR" && (
+            <Link
+              href="/ambassador"
+              className={`nav-link ${pathname.startsWith("/ambassador") ? "active" : ""}`}
+              style={{ color: "var(--accent)" }}
+            >
               Dashboard
+            </Link>
+          )}
+          {user?.role === "RIDER" && (
+            <Link
+              href="/rider"
+              className={`nav-link ${pathname.startsWith("/rider") ? "active" : ""}`}
+              style={{ color: "var(--accent)" }}
+            >
+              Portal
             </Link>
           )}
         </nav>

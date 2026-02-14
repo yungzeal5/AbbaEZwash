@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import OrderListCreateView, OrderDetailView
+from .views import OrderListCreateView, OrderDetailView, ReviewCreateView, PublicReviewListView
 from .admin_views import (
     AdminOrderListView,
     AcceptOrderView,
@@ -12,6 +12,8 @@ from .admin_views import (
 urlpatterns = [
     # Customer endpoints
     path('', OrderListCreateView.as_view(), name='order_list_create'),
+    path('review/', ReviewCreateView.as_view(), name='order_review'),
+    path('reviews/public/', PublicReviewListView.as_view(), name='public_reviews'),
     path('<str:order_id>/', OrderDetailView.as_view(), name='order_detail'),
     
     # Admin endpoints  

@@ -29,9 +29,24 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (credentials: any) => Promise<void>;
-  register: (data: any) => Promise<void>;
+  login: (credentials: LoginCredentials) => Promise<void>;
+  register: (data: RegisterData) => Promise<void>;
   logout: () => void;
+}
+
+interface LoginCredentials {
+  username: string;
+  password: string;
+}
+
+interface RegisterData extends LoginCredentials {
+  email: string;
+  phone_number?: string;
+  role?: string;
+  location?: {
+    address?: string;
+  };
+  referral_code?: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -60,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuth();
   }, []);
 
-  const login = async (credentials: any) => {
+  const login = async (credentials: LoginCredentials) => {
     // Clear any existing tokens before logging in to prevent stale token issues
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
@@ -81,12 +96,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       router.push("/admin");
     } else if (userData.role === "RIDER") {
       router.push("/rider");
+    } else if (userData.role === "AMBASSADOR") {
+      router.push("/ambassador");
     } else {
       router.push("/");
     }
   };
 
-  const register = async (formData: any) => {
+  const register = async (formData: RegisterData) => {
     await apiRequest("/users/register/", {
       method: "POST",
       body: JSON.stringify(formData),

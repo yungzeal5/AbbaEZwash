@@ -75,5 +75,81 @@ class OrderDetailView(APIView):
         order['_id'] = str(order['_id'])
         if isinstance(order.get('created_at'), datetime):
             order['created_at'] = order['created_at'].isoformat()
+        if isinstance(order.get('updated_at'), datetime):
+            order['updated_at'] = order['updated_at'].isoformat()
             
         return Response(order)
+            
+
+class ReviewCreateView(APIView):
+    """Allow customers to leave a review for an order."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        data = request.data
+        user = request.user
+        order_id = data.get('order_id')
+        rating = data.get('rating')
+        comment = data.get('comment', '')
+
+        if not order_id or not rating:
+            return Response(
+                {'error': 'order_id and rating (1-5) are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            rating = int(rating)
+            if not (1 <= rating <= 5):
+                raise ValueError()
+        except ValueError:
+            return Response({'error': 'Rating must be an integer between 1 and 5'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if order exists and belongs to user
+        collection = mongo_service.get_collection('orders')
+        order = collection.find_one({'order_id': order_id, 'user_id': str(user.id)})
+        
+        if not order:
+            return Response({'error': 'Order not found or not owned by you'}, status=status.HTTP_404_NOT_FOUND)
+
+        if order['status'] != 'DELIVERED':
+             return Response({'error': 'Can only review delivered orders'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create review
+        reviews_collection = mongo_service.get_collection('reviews')
+        
+        # Check if already reviewed
+        if reviews_collection.find_one({'order_id': order_id}):
+            return Response({'error': 'Order already reviewed'}, status=status.HTTP_400_BAD_REQUEST)
+
+        review_doc = {
+            'user_id': str(user.id),
+            'username': user.username,
+            'order_id': order_id,
+            'rating': rating,
+            'comment': comment,
+            'created_at': datetime.utcnow()
+        }
+        
+        reviews_collection.insert_one(review_doc)
+        
+        # Update order to mark it as reviewed
+        collection.update_one({'order_id': order_id}, {'$set': {'is_reviewed': True}})
+
+        return Response({'message': 'Review submitted successfully!'}, status=status.HTTP_201_CREATED)
+
+class PublicReviewListView(APIView):
+    """Fetch all reviews for the homepage (Public)."""
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        reviews_collection = mongo_service.get_collection('reviews')
+        # Get latest 10 reviews with 4+ stars
+        reviews = list(reviews_collection.find({'rating': {'$gte': 4}}).sort('created_at', -1).limit(10))
+
+        for review in reviews:
+            review['_id'] = str(review['_id'])
+            if isinstance(review.get('created_at'), datetime):
+                review['created_at'] = review['created_at'].isoformat()
+        
+        return Response(reviews)

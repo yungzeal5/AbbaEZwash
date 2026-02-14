@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Check, Plus, Minus, ArrowRight, LogIn, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { apiRequest } from "@/lib/api";
+import { formatMoney } from "@/lib/currency";
 import { useRouter } from "next/navigation";
 
 const laundryItems = [
@@ -244,7 +245,7 @@ export default function OrdersPage() {
                     <div className="flex items-center gap-3">
                       {selectedItem && selectedItem.quantity > 1 && (
                         <span className="text-caption">
-                          ×{selectedItem.quantity}
+                          x{selectedItem.quantity}
                         </span>
                       )}
                       <span
@@ -253,10 +254,11 @@ export default function OrdersPage() {
                           color: isSelected ? "var(--primary)" : "inherit",
                         }}
                       >
-                        ₵
-                        {selectedItem
-                          ? (item.price * selectedItem.quantity).toFixed(2)
-                          : item.price.toFixed(2)}
+                        {formatMoney(
+                          selectedItem
+                            ? item.price * selectedItem.quantity
+                            : item.price,
+                        )}
                       </span>
                     </div>
                   </button>
@@ -429,7 +431,7 @@ export default function OrdersPage() {
                     className="price price-lg"
                     style={{ color: "var(--primary)" }}
                   >
-                    ₵{total.toFixed(2)}
+                    {formatMoney(total)}
                   </p>
                 </div>
                 <button

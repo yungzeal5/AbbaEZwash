@@ -7,6 +7,8 @@ from .admin_views import (
     CreateStaffUserView,
     SystemStatsView,
     ComplaintsView,
+    AdminReviewListView,
+    AmbassadorAdminListView,
 )
 from .ambassador_views import (
     AmbassadorProfileView,
@@ -27,6 +29,10 @@ urlpatterns = [
     path('superadmin/create-staff/', CreateStaffUserView.as_view(), name='superadmin_create_staff'),
     path('superadmin/stats/', SystemStatsView.as_view(), name='superadmin_stats'),
     path('superadmin/complaints/', ComplaintsView.as_view(), name='superadmin_complaints'),
+    path('superadmin/reviews/', AdminReviewListView.as_view(), name='superadmin_reviews'),
+    
+    # New Ambassador Admin endpoint
+    path('superadmin/ambassadors/', AmbassadorAdminListView.as_view(), name='superadmin_ambassadors'),
     
     # Ambassador endpoints
     path('ambassador/profile/', AmbassadorProfileView.as_view(), name='ambassador_profile'),

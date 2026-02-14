@@ -22,10 +22,12 @@ export default function LoginPage() {
 
     try {
       await login(formData);
-    } catch (err: any) {
-      setError(
-        err.message || "Failed to login. Please check your credentials.",
-      );
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Failed to login. Please check your credentials.";
+      setError(errorMessage);
       setLoading(false);
     }
   };

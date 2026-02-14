@@ -26,6 +26,7 @@ export default function RegisterPage() {
     phone_number: "",
     role: "CUSTOMER",
     location: { address: "" },
+    referral_code: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,8 +36,12 @@ export default function RegisterPage() {
 
     try {
       await register(formData);
-    } catch (err: any) {
-      setError(err.message || "Failed to register. Please check your details.");
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Failed to register. Please check your details.";
+      setError(errorMessage);
       setLoading(false);
     }
   };
@@ -255,6 +260,38 @@ export default function RegisterPage() {
                   }
                 />
                 <MapPin
+                  className="absolute left-0 top-[14px]"
+                  style={{
+                    width: "18px",
+                    height: "18px",
+                    color: "var(--primary)",
+                  }}
+                />
+              </div>
+            </div>
+
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "8px" }}
+            >
+              <label
+                className="text-label"
+                style={{ color: "var(--gold)", fontSize: "0.6rem" }}
+              >
+                Referral Code (Optional)
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  className="input"
+                  style={{ paddingLeft: "36px" }}
+                  placeholder="Enter 6-digit code"
+                  value={formData.referral_code}
+                  onChange={(e) =>
+                    setFormData({ ...formData, referral_code: e.target.value })
+                  }
+                  maxLength={6}
+                />
+                <UserPlus
                   className="absolute left-0 top-[14px]"
                   style={{
                     width: "18px",

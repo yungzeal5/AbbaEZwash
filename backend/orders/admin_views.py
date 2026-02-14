@@ -189,6 +189,32 @@ class UpdateOrderStatusView(APIView):
             }
         )
 
+        # Handle Commission if DELIVERED
+        if new_status == 'DELIVERED':
+            customer_id = order.get('user_id')
+            if customer_id:
+                try:
+                    customer = User.objects.get(id=customer_id)
+                    if customer.referred_by and customer.referred_by.role == 'AMBASSADOR':
+                        ambassador = customer.referred_by
+                        commission_amount = float(order.get('total_price', 0)) * 0.05
+                        
+                        if commission_amount > 0:
+                            commissions_collection = mongo_service.get_collection('commissions')
+                            commissions_collection.insert_one({
+                                'ambassador_id': str(ambassador.id),
+                                'ambassador_name': ambassador.username,
+                                'customer_id': str(customer.id),
+                                'customer_name': customer.username,
+                                'order_id': order_id,
+                                'order_amount': order.get('total_price', 0),
+                                'commission_amount': commission_amount,
+                                'created_at': datetime.utcnow()
+                            })
+                            print(f"💰 Commission of {commission_amount} credited to ambassador {ambassador.username}")
+                except User.DoesNotExist:
+                    pass
+
         return Response({
             'message': f'Order status updated to {new_status}',
             'order_id': order_id,
@@ -230,11 +256,14 @@ class AdminStatsView(APIView):
         stats = {
             'total_orders': collection.count_documents({}),
             'pending': collection.count_documents({'status': 'PENDING'}),
-            'in_progress': collection.count_documents({'status': {'$in': ['ACCEPTED', 'PICKED_UP', 'CLEANING', 'READY']}}),
+            'in_progress': collection.count_documents({'status': {'$in': ['ASSIGNED', 'ACCEPTED', 'PICKED_UP', 'CLEANING', 'READY']}}),
             'delivered': collection.count_documents({'status': 'DELIVERED'}),
             'total_revenue': total_revenue,
             'total_riders': User.objects.filter(role='RIDER').count(),
             'total_customers': User.objects.filter(role='CUSTOMER').count(),
+            'total_ambassadors': User.objects.filter(role='AMBASSADOR').count(),
+            'reviews': mongo_service.get_collection('reviews').count_documents({}),
+            'complaints': mongo_service.get_collection('complaints').count_documents({}),
         }
         
         return Response(stats)

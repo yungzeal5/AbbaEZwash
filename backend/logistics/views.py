@@ -7,14 +7,15 @@ Handles pickup/delivery workflow:
 - Location tracking
 """
 from datetime import datetime
+from django.db import models
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from users.permissions import IsRider, IsRiderOrAdmin
+from users.permissions import IsRider, IsRiderOrAdmin, IsAdmin
 from services.mongo_service import mongo_service
 from services.notification_service import notification_service
 from django.contrib.auth import get_user_model
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 
 User = get_user_model()
 
@@ -30,7 +31,7 @@ class RiderOrdersView(APIView):
         # Get orders assigned to this rider
         orders = list(collection.find({
             'assigned_rider_id': rider_id,
-            'status': {'$in': ['ACCEPTED', 'PICKED_UP', 'READY']}
+            'status': {'$in': ['ASSIGNED', 'ACCEPTED', 'PICKED_UP', 'READY']}
         }).sort('created_at', -1))
 
         for order in orders:
@@ -154,14 +155,21 @@ class DeliverOrderView(APIView):
             }
         )
 
-        # Notify customer
-        # notification_service.notify(customer, "Your laundry has been delivered!", channels=['sms', 'email'])
+        # Increment streaks for Customer and Rider
+        customer_id = order.get('user_id')
+        if customer_id:
+            User.objects.filter(id=customer_id).update(streak_count=models.F('streak_count') + 1)
+        
+        # Increment current rider's streak
+        request.user.streak_count += 1
+        request.user.save(update_fields=['streak_count'])
 
         return Response({
             'message': 'Order delivered successfully',
             'order_id': order_id,
             'status': 'DELIVERED',
-            'delivered_at': delivery_time.isoformat()
+            'delivered_at': delivery_time.isoformat(),
+            'rider_streak': request.user.streak_count
         })
 
 
@@ -187,7 +195,7 @@ class RiderStatusToggleView(APIView):
 
 class AdminRiderListView(APIView):
     """List all riders and their status for admin."""
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdmin]
 
     def get(self, request):
         riders = User.objects.filter(role='RIDER').prefetch_related('rider_profile')
@@ -204,11 +212,12 @@ class AdminRiderListView(APIView):
                 'email': rider.email,
                 'is_online': is_online,
                 'custom_id': rider.custom_id,
+                'streak_count': rider.streak_count,
             }
             
             rider_data['active_tasks'] = collection.count_documents({
                 'assigned_rider_id': str(rider.id),
-                'status': {'$in': ['ACCEPTED', 'PICKED_UP', 'READY']}
+                'status': {'$in': ['ASSIGNED', 'ACCEPTED', 'PICKED_UP', 'READY']}
             })
             riders_list.append(rider_data)
             
@@ -217,7 +226,7 @@ class AdminRiderListView(APIView):
 
 class AdminAssignTaskView(APIView):
     """Assign an order to a rider."""
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdmin]
 
     def post(self, request, order_id):
         rider_id = request.data.get('rider_id')
@@ -296,7 +305,7 @@ from users.serializers import RegisterSerializer
 
 class AdminRiderRegistrationView(APIView):
     """Admin registers a new rider."""
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdmin]
 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)

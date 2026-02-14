@@ -3,15 +3,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { apiRequest } from "@/lib/api";
+import { formatMoney } from "@/lib/currency";
 import { motion } from "framer-motion";
-import {
-  ArrowLeft,
-  User,
-  Phone,
-  MapPin,
-  Mail,
-  ShoppingBag,
-} from "lucide-react";
+import { ArrowLeft, Phone, MapPin, Mail, ShoppingBag } from "lucide-react";
 
 interface UserDetails {
   id: number;
@@ -31,7 +25,9 @@ interface UserOrder {
   total_price: number;
   status: string;
   created_at: string;
-  items: any[];
+  items: Array<Record<string, unknown>>;
+  user_id?: string;
+  customer_name?: string;
 }
 
 export default function UserDetailsPage() {
@@ -47,9 +43,7 @@ export default function UserDetailsPage() {
         // We need a backend endpoint for getting user details by ID for admins
         // For now simulating or using existing logic if available.
         // Assuming a new endpoint /users/admin/users/<id>/
-        const userData = await apiRequest(
-          `/users/superadmin/users/${params.id}/`,
-        );
+        const userData = await apiRequest(`/users/superadmin/users/${params.id}/`);
         // Note: Reusing superadmin endpoint which likely returns needed info
         setUser(userData);
 
@@ -57,11 +51,9 @@ export default function UserDetailsPage() {
         // Need to update backend or filter strictly on frontend from ALL orders if no endpoint.
         // Ideally: /orders/admin/user/<id>/
         // For now: Fetching ALL admin orders and filtering (inefficient but works for MVP)
-        const allOrders = await apiRequest("/orders/admin/all/");
+        const allOrders: UserOrder[] = await apiRequest("/orders/admin/all/");
         const userOrders = allOrders.filter(
-          (o: any) =>
-            o.user_id === String(params.id) ||
-            o.customer_name === userData.username,
+          (o) => o.user_id === String(params.id) || o.customer_name === userData.username,
         );
         setOrders(userOrders);
       } catch (err) {
@@ -77,41 +69,41 @@ export default function UserDetailsPage() {
   if (!user) return <div className="text-white">User not found</div>;
 
   return (
-    <div>
+    <div className="!pb-20">
       <button
         onClick={() => router.back()}
-        className="flex items-center gap-2 text-muted hover:text-white mb-6 transition-colors"
+        className="flex items-center gap-2 text-muted hover:text-white !mb-6 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" /> Back
       </button>
 
       {/* User Profile Card */}
-      <div className="card glass-panel p-8 mb-8">
+      <div className="card glass-panel !p-8 !mb-8">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-6">
             <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-3xl font-bold text-white">
               {user.first_name?.[0] || user.username[0]}
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white mb-1">
+              <h1 className="text-3xl font-bold text-white !mb-1">
                 {user.first_name} {user.last_name}
               </h1>
               <p className="text-primary font-mono text-sm">{user.role}</p>
-              <p className="text-muted text-sm mt-1">
+              <p className="text-muted text-sm !mt-1">
                 Joined {new Date(user.date_joined).toLocaleDateString()}
               </p>
             </div>
           </div>
           <div className="text-right">
             <span
-              className={`px-3 py-1 rounded-full text-xs font-bold ${user.role === "CUSTOMER" ? "bg-blue-500/10 text-blue-500" : "bg-purple-500/10 text-purple-500"}`}
+              className={`!px-3 !py-1 rounded-full text-xs font-bold ${user.role === "CUSTOMER" ? "bg-blue-500/10 text-blue-500" : "bg-purple-500/10 text-purple-500"}`}
             >
               {user.role}
             </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 pt-8 border-t border-white/5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 !mt-8 !pt-8 border-t border-white/5">
           <div className="flex items-center gap-3 text-sm text-muted">
             <Mail className="w-4 h-4" />
             {user.email}
@@ -143,26 +135,22 @@ export default function UserDetailsPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 key={order._id}
-                className="card glass-panel p-4 flex items-center justify-between"
+                className="card glass-panel !p-4 !flex items-center justify-between"
               >
                 <div>
-                  <p className="font-mono text-xs text-gold mb-1">
-                    #{order.order_id}
-                  </p>
+                  <p className="font-mono text-xs text-gold !mb-1">#{order.order_id}</p>
                   <p className="text-white font-bold">
-                    ₵{order.total_price.toFixed(2)}
-                    <span className="text-muted font-normal text-sm ml-2">
+                    {formatMoney(order.total_price)}
+                    <span className="text-muted font-normal text-sm !ml-2">
                       ({order.items.length} items)
                     </span>
                   </p>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs text-muted block mb-1">
+                  <span className="text-xs text-muted block !mb-1">
                     {new Date(order.created_at).toLocaleDateString()}
                   </span>
-                  <span className="badge badge-default bg-white/5">
-                    {order.status}
-                  </span>
+                  <span className="badge badge-default bg-white/5">{order.status}</span>
                 </div>
               </motion.div>
             ))}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
+import { apiRequest } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
@@ -12,6 +13,7 @@ import {
   LogOut,
   Shield,
   Fingerprint,
+  Trash2,
 } from "lucide-react";
 import StreakTracker from "@/components/profile/StreakTracker";
 
@@ -24,6 +26,26 @@ export default function ProfilePage() {
       router.push("/auth/login");
     }
   }, [user, loading, router]);
+
+  const handleDeleteAccount = async () => {
+    if (
+      !confirm(
+        "Are you sure you want to permanently delete your account? This action cannot be reversed.",
+      )
+    )
+      return;
+    try {
+      await apiRequest("/users/profile/", {
+        method: "DELETE",
+      });
+      logout();
+      router.push("/");
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to delete account";
+      alert(errorMessage);
+    }
+  };
 
   if (loading || !user) {
     return (
@@ -41,7 +63,7 @@ export default function ProfilePage() {
     username.substring(0, 2).toUpperCase();
 
   return (
-    <div className="page-content">
+    <div className="page-content" style={{ paddingBottom: "120px" }}>
       {/* Header */}
       <section style={{ padding: "32px 0" }}>
         <div className="container">
@@ -249,6 +271,22 @@ export default function ProfilePage() {
           >
             <LogOut className="w-4 h-4" />
             Sign Out
+          </motion.button>
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.35 }}
+            onClick={handleDeleteAccount}
+            className="btn w-full flex items-center justify-center gap-2 mt-4"
+            style={{
+              background: "transparent",
+              color: "#ef4444",
+              border: "1px solid rgba(239, 68, 68, 0.1)",
+              padding: "16px",
+            }}
+          >
+            <Trash2 className="w-4 h-4" />
+            Delete Account
           </motion.button>
         </div>
       </section>

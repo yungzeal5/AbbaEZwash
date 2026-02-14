@@ -4,6 +4,18 @@ interface ApiRequestOptions extends RequestInit {
   requiresAuth?: boolean;
 }
 
+export class ApiError extends Error {
+  status: number;
+  data: unknown;
+
+  constructor(message: string, status: number, data: unknown = {}) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.data = data;
+  }
+}
+
 export async function apiRequest(
   endpoint: string,
   options: ApiRequestOptions = {},
@@ -40,20 +52,34 @@ export async function apiRequest(
   }
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    const errorData: Record<string, unknown> = await response
+      .json()
+      .catch(() => ({}));
 
     // Handle DRF list of errors or single error
-    let errorMessage = errorData.detail || errorData.message;
+    let errorMessage =
+      typeof errorData.detail === "string"
+        ? errorData.detail
+        : typeof errorData.message === "string"
+          ? errorData.message
+          : undefined;
 
     if (!errorMessage && typeof errorData === "object") {
       const keys = Object.keys(errorData);
       if (keys.length > 0) {
         const firstError = errorData[keys[0]];
-        errorMessage = `${keys[0]}: ${Array.isArray(firstError) ? firstError[0] : firstError}`;
+        const normalizedFirstError = Array.isArray(firstError)
+          ? String(firstError[0])
+          : String(firstError);
+        errorMessage = `${keys[0]}: ${normalizedFirstError}`;
       }
     }
 
-    throw new Error(errorMessage || "Something went wrong");
+    throw new ApiError(
+      errorMessage || "Something went wrong",
+      response.status,
+      errorData,
+    );
   }
 
   return response.json();
