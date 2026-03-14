@@ -19,6 +19,28 @@ class BaseNotificationChannel(ABC):
     def send(self, recipient, message, **kwargs):
         pass
 
+    def _format_phone_number(self, phone_number):
+        """Ensure phone number is in E.164 format for Ghana."""
+        if not phone_number:
+            return None
+        
+        # Remove any spaces or dashes
+        clean_number = "".join(filter(str.isdigit, str(phone_number)))
+        
+        # If it starts with 0 and is 10 digits, replace 0 with +233
+        if clean_number.startswith('0') and len(clean_number) == 10:
+            return f"+233{clean_number[1:]}"
+        
+        # If it starts with 233 but no +, add +
+        if clean_number.startswith('233') and len(clean_number) == 12:
+            return f"+{clean_number}"
+            
+        # If it's already +233, return as is
+        if str(phone_number).startswith('+'):
+            return str(phone_number)
+            
+        return phone_number
+
 
 class EmailChannel(BaseNotificationChannel):
     """Send emails using Django's SMTP backend."""
@@ -49,6 +71,7 @@ class SMSChannel(BaseNotificationChannel):
     def __init__(self):
         self.client = None
         self.from_number = getattr(settings, 'TWILIO_PHONE_NUMBER', None)
+        self.messaging_service_sid = getattr(settings, 'TWILIO_MESSAGING_SERVICE_SID', None)
         
         account_sid = getattr(settings, 'TWILIO_ACCOUNT_SID', None)
         auth_token = getattr(settings, 'TWILIO_AUTH_TOKEN', None)
@@ -63,16 +86,22 @@ class SMSChannel(BaseNotificationChannel):
             logger.warning("Twilio credentials not configured. SMS disabled.")
     
     def send(self, recipient, message, **kwargs):
-        if not self.client or not self.from_number:
+        recipient = self._format_phone_number(recipient)
+        if not self.client or (not self.from_number and not self.messaging_service_sid):
             logger.info(f"[SMS Mock] Would send to {recipient}: {message}")
             return True  # Mock success
         
         try:
-            self.client.messages.create(
-                body=message,
-                from_=self.from_number,
-                to=recipient
-            )
+            params = {
+                'body': message,
+                'to': recipient
+            }
+            if self.messaging_service_sid:
+                params['messaging_service_sid'] = self.messaging_service_sid
+            else:
+                params['from_'] = self.from_number
+
+            self.client.messages.create(**params)
             logger.info(f"SMS sent successfully to {recipient}")
             return True
         except Exception as e:
@@ -100,6 +129,7 @@ class WhatsAppChannel(BaseNotificationChannel):
             logger.warning("Twilio credentials not configured. WhatsApp disabled.")
     
     def send(self, recipient, message, **kwargs):
+        recipient = self._format_phone_number(recipient)
         if not self.client or not self.from_number:
             logger.info(f"[WhatsApp Mock] Would send to {recipient}: {message}")
             return True  # Mock success
@@ -167,26 +197,61 @@ class NotificationService:
         
         return results
 
-    def notify_order_placed(self, user, order_id):
-        """Convenience method for order placement notification."""
-        return self.notify(
-            user,
-            f"Your Abba EZWash order {order_id} has been placed successfully! We'll notify you when a rider is assigned.",
-            channels=['email', 'sms'],
-            subject=f"Order Confirmed - {order_id}"
-        )
+        return results
 
-    def notify_order_status(self, user, order_id, status):
+    def notify_admin(self, message):
+        """Notify admin phone number."""
+        admin_phone = getattr(settings, 'ADMIN_PHONE_NUMBER', None)
+        if admin_phone:
+            return self.channels['sms'].send(admin_phone, message)
+        return False
+
+    def notify_order_placed(self, user, order_doc):
+        """Notify customer and admin of a new order."""
+        order_id = order_doc.get('order_id')
+        total = order_doc.get('total_price')
+        
+        # Notify Customer
+        self.notify(
+            user,
+            f"Your Abba order {order_id} has been placed successfully! Total: GH₵{total}. We'll notify you when a rider is assigned.",
+            channels=['sms']
+        )
+        
+        # Notify Admin
+        admin_msg = f"🔔 New Order Placed!\nID: {order_id}\nCustomer: {user.username}\nTotal: GH₵{total}\nLocation: {order_doc.get('pickup_location')}"
+        self.notify_admin(admin_msg)
+        
+        return True
+
+    def notify_rider_assigned(self, customer, rider, order_id):
+        """Notify customer and rider of assignment."""
+        # Notify Customer
+        self.notify(
+            customer,
+            f"A rider ({rider.first_name}) has been assigned to your order {order_id}. You can track their details in your history.",
+            channels=['sms']
+        )
+        
+        # Notify Rider
+        self.notify(
+            rider,
+            f"New Task Assigned! Please check your dashboard for order {order_id} and accept it to proceed.",
+            channels=['sms']
+        )
+        return True
+
+    def notify_order_status(self, user, order_id, status_code):
         """Notify user of order status change."""
         messages = {
             'ACCEPTED': f"Great news! Your order {order_id} has been accepted. A rider will pick it up soon.",
-            'PICKED_UP': f"Your order {order_id} has been picked up by our rider.",
-            'CLEANING': f"Your laundry from order {order_id} is now being cleaned.",
-            'READY': f"Your order {order_id} is ready! Our rider will deliver it shortly.",
-            'DELIVERED': f"Your order {order_id} has been delivered. Thank you for choosing Abba EZWash!"
+            'PICKED_UP': f"Your order {order_id} has been picked up by our rider. We're on it!",
+            'CLEANING': f"Your laundry from order {order_id} is now being cleaned with care. ✨",
+            'READY': f"Your order {order_id} is ready for delivery! Our rider will arrive shortly.",
+            'DELIVERED': f"Your order {order_id} has been delivered. Thank you for choosing Abba EZWash! Luxury clean, delivered."
         }
-        message = messages.get(status, f"Order {order_id} status updated to: {status}")
-        return self.notify(user, message, channels=['sms'], subject=f"Order Update - {order_id}")
+        message = messages.get(status_code, f"Order {order_id} status updated to: {status_code}")
+        return self.notify(user, message, channels=['sms'])
 
 
 # Singleton instance

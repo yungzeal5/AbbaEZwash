@@ -1,16 +1,16 @@
 @import "tailwindcss";
 :root {
-  /* Brand Palette - Primary */
+  /* Brand Palette - Primary (Abba Blue) */
   --primary: #1a56db;
-  --primary-hover: #3b82f6;
-  --primary-soft: rgba(26, 86, 219, 0.15);
+  --primary-hover: #1e429f;
+  --primary-soft: rgba(26, 86, 219, 0.08);
 
-  /* Brand Palette - Secondary */
+  /* Brand Palette - Secondary (Abba Cyan) */
   --secondary: #14b8a6;
-  --secondary-hover: #2dd4bf;
-  --secondary-soft: rgba(20, 184, 166, 0.15);
+  --secondary-hover: #0d9488;
+  --secondary-soft: rgba(20, 184, 166, 0.08);
 
-  /* Accent & Gold */
+  /* Accent & Gold (Abba Gold) */
   --accent: #2ed3c6;
   --warning: #f4c430;
   --gold: #d4af37;
@@ -22,41 +22,41 @@
   --gold-gradient: linear-gradient(135deg, #d4af37 0%, #f4d03f 50%, #d4af37 100%);
   --gold-gradient-subtle: linear-gradient(
     135deg,
-    rgba(212, 175, 55, 0.3) 0%,
-    rgba(244, 208, 63, 0.4) 50%,
-    rgba(212, 175, 55, 0.3) 100%
+    rgba(212, 175, 55, 0.1) 0%,
+    rgba(244, 208, 63, 0.15) 50%,
+    rgba(212, 175, 55, 0.1) 100%
   );
   --gold-border-gradient: linear-gradient(
     135deg,
-    rgba(212, 175, 55, 0.5) 0%,
-    rgba(244, 208, 63, 0.7) 50%,
-    rgba(184, 134, 11, 0.5) 100%
+    rgba(212, 175, 55, 0.3) 0%,
+    rgba(244, 208, 63, 0.5) 50%,
+    rgba(184, 134, 11, 0.3) 100%
   );
   --gold-shimmer: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(244, 208, 63, 0.3) 50%,
+    rgba(244, 208, 63, 0.2) 50%,
     transparent 100%
   );
 
-  /* Neutrals */
-  --bg-primary: #000000;
-  --background: #000000;
-  --bg-secondary: #0a0a0a;
-  --bg-card: #0f0f0f;
-  --bg-elevated: #161616;
-  --bg-muted: #1f1f1f;
+  /* Neutrals - LIGHT THEME */
+  --bg-primary: #f8fafc;
+  --background: #ffffff;
+  --bg-secondary: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-muted: #e2e8f0;
 
-  --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.75);
-  --text-muted: rgba(255, 255, 255, 0.5);
-  --text-subtle: rgba(255, 255, 255, 0.3);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-subtle: #94a3b8;
 
-  /* Enhanced borders with gold accents */
-  --border-default: rgba(255, 255, 255, 0.08);
-  --border-hover: rgba(255, 255, 255, 0.15);
-  --border-gold: rgba(212, 175, 55, 0.3);
-  --border-gold-hover: rgba(212, 175, 55, 0.5);
+  /* Enhanced borders */
+  --border-default: rgba(0, 0, 0, 0.06);
+  --border-hover: rgba(0, 0, 0, 0.1);
+  --border-gold: rgba(212, 175, 55, 0.2);
+  --border-gold-hover: rgba(212, 175, 55, 0.4);
 
   /* Layout */
   --nav-height: 80px;
@@ -65,10 +65,10 @@
   --container-padding: 16px;
 
   /* Radius */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 20px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
   --radius-full: 9999px;
 }
 
@@ -115,6 +115,9 @@ body {
   line-height: 1.5;
   color: var(--text-primary);
   background-color: var(--bg-primary);
+  background-image:
+    radial-gradient(circle at 0% 0%, rgba(26, 86, 219, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(46, 211, 198, 0.03) 0%, transparent 50%);
   min-height: 100vh;
 }
 
@@ -248,13 +251,16 @@ body {
   border-radius: var(--radius-lg);
   padding: 20px;
   border: 1px solid var(--border-default);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
   transition:
+    transform 0.2s ease,
     border-color 0.3s ease,
     box-shadow 0.3s ease;
 }
 
 .card:hover {
-  border-color: var(--border-gold);
+  border-color: var(--primary);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
 }
 
 .card-sm {
@@ -315,14 +321,16 @@ body {
 }
 
 .btn-secondary {
-  background: transparent;
+  background: var(--background);
   color: var(--text-primary);
   border: 1px solid var(--border-default);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 .btn-secondary:hover {
-  border-color: var(--border-gold);
-  background: var(--bg-elevated);
+  border-color: var(--primary);
+  background: var(--bg-primary);
+  transform: translateY(-1px);
 }
 
 .btn-ghost {
@@ -457,7 +465,10 @@ button {
   left: 0;
   right: 0;
   height: var(--nav-height);
-  border-bottom: 1px solid var(--border-gold);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-default);
   z-index: 100;
   display: none;
   transition:
@@ -518,10 +529,11 @@ button {
   left: 0;
   right: 0;
   height: var(--tab-height);
-  background: rgba(0, 0, 0, 0.95);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid var(--border-gold);
+  border-top: 1px solid var(--border-default);
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.05);
   z-index: 100;
 }
 

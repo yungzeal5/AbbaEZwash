@@ -75,7 +75,7 @@ export default function RegisterPage() {
             >
               <UserPlus className="w-5 h-5" />
             </div>
-            <h1 className="text-title" style={{ letterSpacing: "0.05em" }}>
+            <h1 className="text-title text-white" style={{ letterSpacing: "0.05em" }}>
               Create Account
             </h1>
             <p className="text-caption" style={{ color: "var(--text-muted)" }}>

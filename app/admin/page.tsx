@@ -16,6 +16,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import Link from "next/link";
+import UserAvatar from "@/components/ui/UserAvatar";
 
 interface AdminStats {
   total_orders: number;
@@ -37,6 +38,7 @@ interface Order {
   total_price: number;
   created_at: string;
   items: Array<Record<string, unknown>>;
+  customer_profile_picture?: string;
 }
 
 export default function AdminDashboard() {
@@ -126,14 +128,12 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div>
+    <div className="!pb-20">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-center !pb-20 gap-4 !mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-center gap-4 !mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white !mb-1">Dashboard</h1>
-          <p className="text-muted">
-            Welcome back, Admin. Here is what is happening today.
-          </p>
+          <h1 className="text-3xl font-bold text-black !mb-1">Dashboard</h1>
+          <p className="text-muted">Welcome back, Admin. Here is what is happening today.</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -144,7 +144,7 @@ export default function AdminDashboard() {
               placeholder="Search..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-            className="!pl-10 !pr-4 !py-2 bg-white/5 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-primary w-64"
+              className="!pl-10 !pr-4 !py-2 bg-black/5 border border-black/10 rounded-xl text-sm focus:outline-none focus:border-primary w-64"
             />
           </div>
         </div>
@@ -170,24 +170,20 @@ export default function AdminDashboard() {
 
               <div className="flex justify-between items-start mb-6">
                 <div
-                  className="!p-3.5 rounded-2xl bg-white/5 border border-white/5 group-hover:scale-110 transition-transform duration-300"
+                  className="!p-3.5 rounded-2xl bg-black/5 border border-black/5 group-hover:scale-110 transition-transform duration-300"
                   style={{ color: stat.color }}
                 >
                   <Icon className="w-6 h-6" />
                 </div>
-                <span className="flex items-center gap-1.5 text-[10px] font-bold tracking-wide uppercase !px-2.5 !py-1 rounded-full bg-white/5 text-muted border border-white/5">
+                <span className="flex items-center gap-1.5 text-[10px] font-bold tracking-wide uppercase !px-2.5 !py-1 rounded-full bg-black/5 text-muted border border-black/5">
                   {stat.trend}
                   <ArrowUpRight className="w-3 h-3" />
                 </span>
               </div>
 
               <div>
-                <p className="text-muted text-sm font-medium !mb-1 tracking-wide">
-                  {stat.label}
-                </p>
-                <h3 className="text-3xl font-bold text-white tracking-tight">
-                  {stat.value}
-                </h3>
+                <p className="text-muted text-sm font-medium !mb-1 tracking-wide">{stat.label}</p>
+                <h3 className="text-3xl font-bold text-white tracking-tight">{stat.value}</h3>
               </div>
             </motion.div>
           );
@@ -201,35 +197,26 @@ export default function AdminDashboard() {
           <div className="card glass-panel !p-8 !mb-8">
             <div className="flex items-center justify-between !mb-8">
               <div>
-                <h3 className="font-bold text-xl text-white !mb-1">
-                  Platform Performance
-                </h3>
-                <p className="text-muted text-sm">
-                  Real-time order completion metrics
-                </p>
+                <h3 className="font-bold text-xl text-white !mb-1">Platform Performance</h3>
+                <p className="text-muted text-sm">Real-time order completion metrics</p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-8 !mb-8">
               <div className="space-y-2">
                 <p className="text-muted text-sm">Total Orders</p>
-                <p className="text-2xl font-bold text-white">
-                  {stats.total_orders}
-                </p>
+                <p className="text-2xl font-bold text-black">{stats.total_orders}</p>
               </div>
               <div className="space-y-2">
                 <p className="text-muted text-sm">Completion Rate</p>
                 <p className="text-2xl font-bold text-primary">
-                  {Math.round(
-                    (stats.delivered / (stats.total_orders || 1)) * 100,
-                  )}
-                  %
+                  {Math.round((stats.delivered / (stats.total_orders || 1)) * 100)}%
                 </p>
               </div>
             </div>
 
             {/* Progress Bar Visual */}
-            <div className="relative h-4 bg-white/5 rounded-full overflow-hidden !mb-4">
+            <div className="relative h-4 bg-black/5 rounded-full overflow-hidden !mb-4">
               <div
                 className="absolute top-0 left-0 h-full bg-primary transition-all duration-1000 ease-out rounded-full"
                 style={{
@@ -259,12 +246,8 @@ export default function AdminDashboard() {
 
           <div className="card glass-panel !p-8 space-y-5">
             <div>
-              <h3 className="font-bold text-xl text-white !mb-1">
-                Order Status Breakdown
-              </h3>
-              <p className="text-muted text-sm">
-                Live distribution of current order states.
-              </p>
+              <h3 className="font-bold text-xl text-black !mb-1">Order Status Breakdown</h3>
+              <p className="text-muted text-sm">Live distribution of current order states.</p>
             </div>
             <div className="space-y-3">
               {[
@@ -276,22 +259,17 @@ export default function AdminDashboard() {
                 },
                 { label: "Delivered", value: stats.delivered, color: "bg-green-500" },
               ].map((item) => {
-                const percent = Math.round(
-                  (item.value / (stats.total_orders || 1)) * 100,
-                );
+                const percent = Math.round((item.value / (stats.total_orders || 1)) * 100);
                 return (
                   <div key={item.label}>
                     <div className="flex items-center justify-between text-sm !mb-1">
                       <span className="text-secondary">{item.label}</span>
-                      <span className="text-white font-semibold">
+                      <span className="text-black font-semibold">
                         {item.value} ({percent}%)
                       </span>
                     </div>
-                    <div className="h-2 rounded-full bg-white/5 overflow-hidden">
-                      <div
-                        className={`h-full ${item.color}`}
-                        style={{ width: `${percent}%` }}
-                      />
+                    <div className="h-2 rounded-full bg-black/5 overflow-hidden">
+                      <div className={`h-full ${item.color}`} style={{ width: `${percent}%` }} />
                     </div>
                   </div>
                 );
@@ -302,43 +280,42 @@ export default function AdminDashboard() {
 
         {/* Right Col: Recent Activity */}
         <div className="card glass-panel !p-0 overflow-hidden h-fit sticky top-6">
-          <div className="!p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
-            <h3 className="font-bold text-lg text-white">Recent Activity</h3>
+          <div className="!p-6 border-b border-black/5 flex items-center justify-between bg-black/[0.02]">
+            <h3 className="font-bold text-lg text-black">Recent Activity</h3>
             <Link
               href="/admin/orders"
-              className="text-xs font-bold text-primary hover:text-white transition-colors"
+              className="text-xs font-bold text-primary hover:text-black transition-colors"
             >
               VIEW ALL
             </Link>
           </div>
 
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-black/5">
             {filteredRecentOrders.length === 0 ? (
-              <p className="text-muted text-center !py-12 text-sm">
-                No matching recent activity.
-              </p>
+              <p className="text-muted text-center !py-12 text-sm">No matching recent activity.</p>
             ) : (
               filteredRecentOrders.map((order) => (
                 <Link
                   href={`/admin/orders?highlight=${order.order_id}`}
                   key={order._id}
-                  className="block hover:bg-white/5 transition-colors group"
+                  className="block hover:bg-black/5 transition-colors group"
                 >
                   <div className="!p-4 flex items-center gap-4">
-                    <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shadow-lg transition-transform group-hover:scale-105 ${
+                    <UserAvatar
+                      src={order.customer_profile_picture}
+                      username={order.customer_name}
+                      size="sm"
+                      className={`shadow-lg transition-transform group-hover:scale-105 ${
                         order.status === "PENDING"
-                          ? "bg-yellow-500 text-black"
+                          ? "ring-2 ring-yellow-500/50"
                           : order.status === "ACCEPTED"
-                            ? "bg-blue-500 text-white"
-                            : "bg-green-500 text-white"
+                            ? "ring-2 ring-blue-500/50"
+                            : "ring-2 ring-green-500/50"
                       }`}
-                    >
-                      {order.customer_name.substring(0, 2).toUpperCase()}
-                    </div>
+                    />
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-baseline !mb-1">
-                        <p className="font-bold text-sm truncate text-white group-hover:text-primary transition-colors">
+                        <p className="font-bold text-sm truncate text-black group-hover:text-primary transition-colors">
                           {order.customer_name}
                         </p>
                         <span className="text-xs font-mono text-muted">
@@ -373,7 +350,7 @@ export default function AdminDashboard() {
             {/* View More Button */}
             <Link
               href="/admin/orders"
-              className="block !p-4 text-center text-xs font-bold text-muted hover:text-white transition-colors bg-white/[0.02] hover:bg-white/5"
+              className="block !p-4 text-center text-xs font-bold text-muted hover:text-black transition-colors bg-black/[0.02] hover:bg-black/5"
             >
               VIEW ORDER HISTORY
             </Link>

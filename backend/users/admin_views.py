@@ -145,6 +145,71 @@ class SystemStatsView(APIView):
         })
 
 
+class AdminReviewListView(APIView):
+    """View all customer reviews (Super Admin & Admin)."""
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        collection = mongo_service.get_collection('reviews')
+        reviews = list(collection.find().sort('created_at', -1))
+
+        # Batch fetch user profiles
+        user_ids = list(set(r.get('user_id') for r in reviews if r.get('user_id')))
+        user_profiles = {str(u.id): u.profile_picture.url if u.profile_picture else None 
+                         for u in User.objects.filter(id__in=user_ids)}
+
+        for r in reviews:
+            r['_id'] = str(r['_id'])
+            user_id = str(r.get('user_id'))
+            r['profile_picture'] = user_profiles.get(user_id)
+            if isinstance(r.get('created_at'), datetime):
+                r['created_at'] = r['created_at'].isoformat()
+
+        return Response(reviews)
+
+
+class AmbassadorAdminListView(APIView):
+    """List all ambassadors with stats for Super Admin."""
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        ambassadors = User.objects.filter(role='AMBASSADOR').order_by('-created_at')
+        
+        # Get stats for each ambassador
+        order_collection = mongo_service.get_collection('orders')
+        commissions_collection = mongo_service.get_collection('commissions')
+        
+        ambassador_data = []
+        for amb in ambassadors:
+            # Referral count
+            referral_count = User.objects.filter(referred_by=amb, role='CUSTOMER').count()
+            
+            # Total earnings from commissions collection
+            earnings_result = list(commissions_collection.aggregate([
+                {'$match': {'ambassador_id': str(amb.id)}},
+                {'$group': {'_id': None, 'total_earned': {'$sum': '$commission_amount'}}}
+            ]))
+            total_earned = earnings_result[0]['total_earned'] if earnings_result else 0
+            
+            # Referral code
+            ref_code = amb.ambassador_profile.referral_code if hasattr(amb, 'ambassador_profile') else None
+            
+            ambassador_data.append({
+                'id': amb.id,
+                'username': amb.username,
+                'email': amb.email,
+                'phone_number': amb.phone_number,
+                'name': f"{amb.first_name} {amb.last_name}".strip() or amb.username,
+                'referral_code': ref_code,
+                'referral_count': referral_count,
+                'total_earnings': float(total_earned),
+                'date_joined': amb.created_at.isoformat(),
+                'is_active': amb.is_active
+            })
+            
+        return Response(ambassador_data)
+
+
 class ComplaintsView(APIView):
     """View and manage customer complaints."""
     permission_classes = [IsAdmin]
@@ -153,8 +218,17 @@ class ComplaintsView(APIView):
         collection = mongo_service.get_collection('complaints')
         complaints = list(collection.find().sort('created_at', -1).limit(50))
         
+        # Batch fetch user profiles
+        user_ids = list(set(c.get('user_id') for c in complaints if c.get('user_id')))
+        user_profiles = {str(u.id): u.profile_picture.url if u.profile_picture else None 
+                         for u in User.objects.filter(id__in=user_ids)}
+
         for complaint in complaints:
             complaint['_id'] = str(complaint['_id'])
+            user_id = str(complaint.get('user_id'))
+            complaint['profile_picture'] = user_profiles.get(user_id)
+            if 'message' in complaint and 'description' not in complaint:
+                complaint['description'] = complaint['message']
             if isinstance(complaint.get('created_at'), datetime):
                 complaint['created_at'] = complaint['created_at'].isoformat()
             if isinstance(complaint.get('resolved_at'), datetime):
@@ -200,27 +274,6 @@ class ComplaintsView(APIView):
             'complaint_id': str(complaint_id),
             'status': 'RESOLVED'
         })
-
-class AdminReviewListView(APIView):
-    """View all customer reviews (Super Admin & Admin)."""
-    permission_classes = [IsAdmin]
-
-    def get(self, request):
-        collection = mongo_service.get_collection('reviews')
-        reviews = list(collection.find().sort('created_at', -1).limit(50))
-        
-        for review in reviews:
-            review['_id'] = str(review['_id'])
-            if isinstance(review.get('created_at'), datetime):
-                review['created_at'] = review['created_at'].isoformat()
-        
-        return Response(reviews)
-
-
-class AmbassadorAdminListView(APIView):
-    """List all ambassadors with stats for Super Admin."""
-    permission_classes = [IsAdmin]
-
     def get(self, request):
         ambassadors = User.objects.filter(role='AMBASSADOR').order_by('-created_at')
         

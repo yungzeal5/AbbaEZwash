@@ -17,6 +17,7 @@ import {
 import { apiRequest } from "@/lib/api";
 import { formatMoney } from "@/lib/currency";
 import { toast } from "react-hot-toast";
+import UserAvatar from "@/components/ui/UserAvatar";
 
 interface Ambassador {
   id: number;
@@ -29,6 +30,7 @@ interface Ambassador {
   total_earnings: number;
   date_joined: string;
   is_active: boolean;
+  profile_picture?: string;
 }
 
 export default function AmbassadorManagement() {
@@ -189,9 +191,11 @@ export default function AmbassadorManagement() {
                   <tr key={amb.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="!px-8 !py-5">
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
-                          {amb.name.charAt(0).toUpperCase()}
-                        </div>
+                        <UserAvatar
+                          user={amb as any}
+                          size="sm"
+                          className="ring-2 ring-blue-100 shadow-sm"
+                        />
                         <div>
                           <p className="font-bold text-gray-900">{amb.name}</p>
                           <p className="text-xs text-gray-500">{amb.email}</p>
@@ -242,8 +246,8 @@ export default function AmbassadorManagement() {
       </section>
 
       {/* Feature Insight Section */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="bg-linear-to-br from-blue-600 to-indigo-700 p-8 rounded-[2.5rem] text-white space-y-4 relative overflow-hidden shadow-2xl">
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-8 !mt-8">
+        <div className="bg-linear-to-br from-blue-600 to-indigo-700 !p-8 rounded-[2.5rem] text-white space-y-4 relative overflow-hidden shadow-2xl">
           <div className="relative z-10 space-y-4">
             <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
               <TrendingUp size={24} />
@@ -254,7 +258,7 @@ export default function AmbassadorManagement() {
               <span className="text-white font-bold">24% of this month&apos;s revenue</span>.
               Consider launching a weekend campaign to boost referrals.
             </p>
-            <button className="bg-white text-blue-600 px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg hover:scale-105 active:scale-95 transition-all">
+            <button className="bg-white text-blue-600 !px-6 !py-2.5 rounded-xl font-bold text-sm shadow-lg hover:scale-105 active:scale-95 transition-all">
               View Analytics
             </button>
           </div>
@@ -262,7 +266,7 @@ export default function AmbassadorManagement() {
           <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
         </div>
 
-        <div className="bg-[#1D1D1F] p-8 rounded-[2.5rem] text-white flex items-center justify-between relative overflow-hidden shadow-2xl">
+        <div className="bg-[#1D1D1F] !p-8 rounded-[2.5rem] text-white flex items-center justify-between relative overflow-hidden shadow-2xl">
           <div className="relative z-10 space-y-4">
             <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md">
               <Award size={24} className="text-yellow-400" />
@@ -273,7 +277,7 @@ export default function AmbassadorManagement() {
               <span className="text-yellow-400 font-bold">2% bonus commission</span> on all future
               referrals.
             </p>
-            <button className="bg-white/10 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all border border-white/10">
+            <button className="bg-white/10 text-white !px-6 !py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all border border-white/10">
               Configure Rules
             </button>
           </div>

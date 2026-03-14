@@ -10,7 +10,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Abba EZWash | Luxury Laundry Service",
+  title: "Abba EZWash",
   description:
     "Premium laundry service that makes your life easier. Experience the luxury of professional garment care.",
   keywords: [

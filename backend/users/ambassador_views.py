@@ -95,7 +95,8 @@ class ReferralHistoryView(APIView):
                 'name': f"{ref.first_name} {ref.last_name}".strip() or ref.username,
                 'date_joined': ref.created_at.isoformat(),
                 'total_spent': total_spent,
-                'commission_earned': float(total_spent) * 0.05
+                'commission_earned': float(total_spent) * 0.05,
+                'profile_picture': ref.profile_picture.url if ref.profile_picture else None
             })
 
         return Response({

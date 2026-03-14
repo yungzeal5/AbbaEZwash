@@ -3,13 +3,8 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
-import {
-  Loader2,
-  User,
-  Calendar,
-  AlertCircle,
-  CheckCircle2,
-} from "lucide-react";
+import { Loader2, User, Calendar, AlertCircle, CheckCircle2 } from "lucide-react";
+import UserAvatar from "@/components/ui/UserAvatar";
 
 interface Complaint {
   _id: string;
@@ -20,6 +15,7 @@ interface Complaint {
   status: string;
   created_at: string;
   resolution?: string;
+  profile_picture?: string;
 }
 
 export default function AdminComplaintsPage() {
@@ -43,26 +39,22 @@ export default function AdminComplaintsPage() {
   }, []);
 
   const handleResolve = async (complaint: Complaint) => {
-    const resolution = window.prompt(
-      `Add a resolution note for complaint #${complaint.order_id}`,
-    );
+    const resolution = window.prompt(`Add a resolution note for complaint #${complaint.order_id}`);
     if (!resolution) return;
 
     setResolvingId(complaint._id);
     try {
       await apiRequest("/users/superadmin/complaints/", {
         method: "POST",
-        body: JSON.stringify({
+        body: {
           complaint_id: complaint._id,
           resolution,
-        }),
+        },
       });
 
       setComplaints((prev) =>
         prev.map((item) =>
-          item._id === complaint._id
-            ? { ...item, status: "RESOLVED", resolution }
-            : item,
+          item._id === complaint._id ? { ...item, status: "RESOLVED", resolution } : item,
         ),
       );
     } catch (error) {
@@ -83,41 +75,39 @@ export default function AdminComplaintsPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-1">
-          Customer Complaints
-        </h1>
+      <div className="!mb-8">
+        <h1 className="text-3xl font-bold text-black !mb-1">Customer Complaints</h1>
         <p className="text-muted">Monitor and resolve service issues.</p>
       </div>
 
       <div className="space-y-4">
         {complaints.length === 0 ? (
-          <div className="py-12 text-center card glass-panel border-dashed border-2 border-white/5 opacity-50">
+          <div className="!py-12 text-center card glass-panel border-dashed border-2 border-white/5 opacity-50">
             <p className="text-muted">No complaints found.</p>
           </div>
         ) : (
           complaints.map((complaint, i) => (
             <motion.div
-              key={complaint._id}
+              key={complaint._id || i}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="card glass-panel p-6 hover:border-white/20 transition-all"
+              className="card glass-panel !p-6 hover:border-black/20 transition-all"
             >
               <div className="flex justify-between items-start gap-4">
                 <div className="flex items-start gap-4 flex-1">
                   <div
-                    className={`p-3 rounded-xl ${complaint.status === "RESOLVED" ? "bg-green-500/10 text-green-400" : "bg-red-500/10 text-red-400"}`}
+                    className={`!p-3 rounded-xl ${complaint.status === "RESOLVED" ? "bg-green-500/10 text-green-400" : "bg-red-500/10 text-red-400"}`}
                   >
                     <AlertCircle className="w-6 h-6" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-3 mb-1">
-                      <h3 className="font-bold text-white text-lg">
+                    <div className="flex items-center gap-3 !mb-1">
+                      <h3 className="font-bold text-black text-lg">
                         {complaint.subject || "No Subject"}
                       </h3>
                       <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-tighter ${
+                        className={`text-[10px] font-bold !px-2 !py-0.5 rounded-full uppercase tracking-tighter ${
                           complaint.status === "RESOLVED"
                             ? "bg-green-500/10 text-green-400 border border-green-500/20"
                             : "bg-red-500/10 text-red-400 border border-red-500/20"
@@ -126,9 +116,14 @@ export default function AdminComplaintsPage() {
                         {complaint.status}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-muted mb-4 font-mono">
-                      <span className="flex items-center gap-1.5">
-                        <User className="w-3 h-3" /> {complaint.username}
+                    <div className="flex items-center gap-4 text-xs text-muted !mb-4 font-mono">
+                      <span className="flex items-center gap-2">
+                        <UserAvatar
+                          src={complaint.profile_picture}
+                          username={complaint.username}
+                          size="xs"
+                        />
+                        {complaint.username}
                       </span>
                       <span className="flex items-center gap-1.5">
                         <Calendar className="w-3 h-3" />{" "}
@@ -141,14 +136,12 @@ export default function AdminComplaintsPage() {
                     </p>
 
                     {complaint.resolution && (
-                      <div className="mt-4 p-4 rounded-xl bg-green-500/5 border border-green-500/10">
-                        <div className="flex items-center gap-2 mb-2 text-green-400 font-bold text-xs uppercase tracking-widest">
+                      <div className="!mt-4 !p-4 rounded-xl bg-green-500/5 border border-green-500/10">
+                        <div className="flex items-center gap-2 !mb-2 text-green-400 font-bold text-xs uppercase tracking-widest">
                           <CheckCircle2 className="w-4 h-4" />
                           Resolution
                         </div>
-                        <p className="text-sm text-green-400/80 italic">
-                          {complaint.resolution}
-                        </p>
+                        <p className="text-sm text-green-400/80 italic">{complaint.resolution}</p>
                       </div>
                     )}
                   </div>

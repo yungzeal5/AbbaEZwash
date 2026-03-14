@@ -1,15 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import {
-  Search,
-  Calendar,
-  ArrowRight,
-  Star,
-  Users,
-} from "lucide-react";
+import { Search, Calendar, ArrowRight, Star, Users } from "lucide-react";
 import { apiRequest } from "@/lib/api";
 import { formatMoney } from "@/lib/currency";
+import UserAvatar from "@/components/ui/UserAvatar";
 
 interface Referral {
   id: number;
@@ -18,6 +13,7 @@ interface Referral {
   date_joined: string;
   total_spent: number;
   commission_earned: number;
+  profile_picture?: string;
 }
 
 export default function AmbassadorCustomers() {
@@ -47,10 +43,7 @@ export default function AmbassadorCustomers() {
   );
 
   const targetReferrals = 100;
-  const progressPercent = Math.min(
-    100,
-    Math.round((referrals.length / targetReferrals) * 100),
-  );
+  const progressPercent = Math.min(100, Math.round((referrals.length / targetReferrals) * 100));
   const referralsRemaining = Math.max(targetReferrals - referrals.length, 0);
 
   return (
@@ -103,9 +96,12 @@ export default function AmbassadorCustomers() {
           {filteredReferrals.map((customer) => (
             <div key={customer.id} className="apple-card group hover:bg-white!">
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-14 h-14 rounded-2xl bg-[#0071E3]/5 text-[#0071E3] flex items-center justify-center font-bold text-xl group-hover:bg-[#0071E3] group-hover:text-white transition-all duration-500 shadow-inner">
-                  {customer.name.charAt(0).toUpperCase()}
-                </div>
+                <UserAvatar
+                  src={customer.profile_picture}
+                  username={customer.name}
+                  size="md"
+                  className="rounded-2xl group-hover:bg-[#0071E3] transition-all duration-500 shadow-inner"
+                />
                 <div>
                   <h3 className="font-bold text-lg leading-none">{customer.name}</h3>
                   <p className="text-[#86868B] text-sm mt-2">@{customer.username}</p>
@@ -160,7 +156,9 @@ export default function AmbassadorCustomers() {
           <div className="space-y-6 flex-1 relative z-10">
             <div className="inline-flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full backdrop-blur-md">
               <Star className="text-yellow-400" size={14} />
-              <span className="text-xs text-blue-600 font-bold uppercase tracking-widest">Success Program</span>
+              <span className="text-xs text-blue-600 font-bold uppercase tracking-widest">
+                Success Program
+              </span>
             </div>
             <h2 className="text-4xl text-[#0071E3] font-bold leading-tight">
               Refer {referralsRemaining} more users to unlock{" "}

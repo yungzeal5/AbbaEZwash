@@ -1,3 +1,5 @@
+import json
+
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
@@ -9,8 +11,9 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'phone_number', 'role', 'is_online', 'location', 
-                 'is_email_verified', 'custom_id', 'streak_count', 'created_at', 'profile_data')
-        read_only_fields = ('id', 'is_email_verified')
+                 'is_email_verified', 'custom_id', 'streak_count', 'created_at', 'profile_data',
+                 'first_name', 'last_name', 'profile_picture')
+        read_only_fields = ('id', 'is_email_verified', 'custom_id', 'role', 'created_at')
 
     def get_profile_data(self, obj):
         if obj.role == User.Role.CUSTOMER and hasattr(obj, 'customer_profile'):
@@ -36,6 +39,31 @@ class UserSerializer(serializers.ModelSerializer):
                 'access_level': obj.admin_profile.access_level
             }
         return {}
+
+    def validate_username(self, value):
+        if not self.instance:
+            return value
+        if value != self.instance.username and User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("Username already exists.")
+        return value
+
+    def validate_phone_number(self, value):
+        if value == "":
+            return None
+        if not self.instance:
+            return value
+        if value and value != self.instance.phone_number and User.objects.filter(phone_number=value).exists():
+            raise serializers.ValidationError("Phone number already exists.")
+        return value
+
+    def update(self, instance, validated_data):
+        raw_location = validated_data.get("location")
+        if isinstance(raw_location, str):
+            try:
+                validated_data["location"] = json.loads(raw_location)
+            except json.JSONDecodeError as exc:
+                raise serializers.ValidationError({"location": "Invalid location payload."}) from exc
+        return super().update(instance, validated_data)
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)

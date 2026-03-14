@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { useState, useEffect } from "react";
+import UserAvatar from "@/components/ui/UserAvatar";
 
 const links = [
   { href: "/", label: "Home" },
@@ -33,10 +34,6 @@ export default function Navbar() {
 
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isHomePage]);
-
-  const getInitials = (username: string) => {
-    return username.substring(0, 2).toUpperCase();
-  };
 
   return (
     <motion.header
@@ -104,11 +101,12 @@ export default function Navbar() {
         <div className="hidden lg:flex items-center gap-4">
           {user ? (
             <div className="flex items-center gap-3">
-              <Link
-                href="/profile"
-                className="avatar avatar-sm flex items-center justify-center bg-primary text-white font-medium"
-              >
-                {getInitials(user.username)}
+              <Link href="/profile">
+                <UserAvatar
+                  user={user}
+                  size="sm"
+                  className="ring-2 ring-primary/10 transition-all hover:ring-primary/30"
+                />
               </Link>
             </div>
           ) : (

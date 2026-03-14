@@ -80,7 +80,10 @@ class PickupOrderView(APIView):
         if order.get('assigned_rider_id') != str(request.user.id):
             return Response({'error': 'Not your assigned order'}, status=status.HTTP_403_FORBIDDEN)
 
-        if order['status'] != 'ACCEPTED':
+        if order['status'] != 'ACCEPTED' and order['status'] != 'ASSIGNED':
+             # Allow pickup from ASSIGNED too if rider skips explicit accept
+             pass
+        elif order['status'] != 'ACCEPTED':
             return Response({'error': f"Cannot pickup order with status: {order['status']}"}, 
                           status=status.HTTP_400_BAD_REQUEST)
 
@@ -106,7 +109,9 @@ class PickupOrderView(APIView):
         )
 
         # Notify customer
-        # notification_service.notify(customer, "Your laundry has been picked up!", channels=['sms'])
+        customer = User.objects.filter(id=order.get('user_id')).first()
+        if customer:
+            notification_service.notify_order_status(customer, order_id, 'PICKED_UP')
 
         return Response({
             'message': 'Order picked up successfully',
@@ -159,6 +164,10 @@ class DeliverOrderView(APIView):
         customer_id = order.get('user_id')
         if customer_id:
             User.objects.filter(id=customer_id).update(streak_count=models.F('streak_count') + 1)
+            # Notify customer
+            customer = User.objects.filter(id=customer_id).first()
+            if customer:
+                notification_service.notify_order_status(customer, order_id, 'DELIVERED')
         
         # Increment current rider's streak
         request.user.streak_count += 1
@@ -263,6 +272,11 @@ class AdminAssignTaskView(APIView):
                 }
             }
         )
+
+        # Notify customer and rider
+        customer = User.objects.filter(id=order.get('user_id')).first()
+        if customer:
+            notification_service.notify_rider_assigned(customer, rider, order_id)
         
         return Response({'message': f'Order assigned to {rider.username}'})
 

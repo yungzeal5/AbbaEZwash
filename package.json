@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "railway:build": "next build",
+    "railway:start": "next start -p ${PORT:-3000}",
     "lint": "eslint",
     "lint:app": "eslint app components context lib",
     "lint:fix": "eslint app components context lib --fix",

@@ -2,14 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import {
-  Search,
-  UserPlus,
-  Circle,
-  MapPin,
-} from "lucide-react";
+import { Search, UserPlus, Circle, MapPin } from "lucide-react";
 
 import { apiRequest } from "@/lib/api";
+import UserAvatar from "@/components/ui/UserAvatar";
 
 interface Rider {
   id: number;
@@ -18,6 +14,7 @@ interface Rider {
   is_online: boolean;
   active_tasks: number;
   custom_id: string;
+  profile_picture?: string;
 }
 
 interface PendingOrder {
@@ -40,9 +37,7 @@ export default function AdminRiders() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRegistering, setIsRegistering] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [assignmentSelections, setAssignmentSelections] = useState<
-    Record<string, string>
-  >({});
+  const [assignmentSelections, setAssignmentSelections] = useState<Record<string, string>>({});
   const [assigningOrderId, setAssigningOrderId] = useState<string | null>(null);
   const [newRider, setNewRider] = useState({
     username: "",
@@ -59,9 +54,7 @@ export default function AdminRiders() {
       // Fetch unassigned orders (orders without assigned_rider_id)
       const ordersData: PendingOrder[] = await apiRequest("/orders/admin/all/"); // Assuming this exists or using a filter
       const unassigned = ordersData.filter(
-        (o) =>
-          !o.assigned_rider_id &&
-          !["DELIVERED", "COMPLETED", "CANCELLED"].includes(o.status),
+        (o) => !o.assigned_rider_id && !["DELIVERED", "COMPLETED", "CANCELLED"].includes(o.status),
       );
       setPendingOrders(unassigned);
     } catch (error) {
@@ -85,8 +78,7 @@ export default function AdminRiders() {
       setIsRegistering(false);
       fetchData();
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       alert("Registration failed: " + errorMessage);
     }
   };
@@ -101,8 +93,7 @@ export default function AdminRiders() {
       setAssignmentSelections((prev) => ({ ...prev, [orderId]: "" }));
       fetchData();
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       alert("Assignment failed: " + errorMessage);
     } finally {
       setAssigningOrderId(null);
@@ -125,16 +116,12 @@ export default function AdminRiders() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-bold !mb-2">Rider Management</h1>
-          <p className="text-muted">
-            Manage your delivery fleet and assign new tasks.
-          </p>
+          <p className="text-muted">Manage your delivery fleet and assign new tasks.</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="!px-4 !py-2 bg-green-500/10 border border-green-500/20 rounded-xl flex items-center gap-3">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-sm font-medium text-green-400">
-              {onlineCount} Riders Online
-            </span>
+            <span className="text-sm font-medium text-green-400">{onlineCount} Riders Online</span>
           </div>
           <button
             onClick={() => setIsRegistering(true)}
@@ -161,36 +148,28 @@ export default function AdminRiders() {
                 placeholder="Username"
                 required
                 className="input bg-white/5 border-white/10 !px-4"
-                onChange={(e) =>
-                  setNewRider({ ...newRider, username: e.target.value })
-                }
+                onChange={(e) => setNewRider({ ...newRider, username: e.target.value })}
               />
               <input
                 type="email"
                 placeholder="Email"
                 required
                 className="input bg-white/5 border-white/10 !px-4"
-                onChange={(e) =>
-                  setNewRider({ ...newRider, email: e.target.value })
-                }
+                onChange={(e) => setNewRider({ ...newRider, email: e.target.value })}
               />
               <input
                 type="tel"
                 placeholder="Phone Number"
                 required
                 className="input bg-white/5 border-white/10 !px-4"
-                onChange={(e) =>
-                  setNewRider({ ...newRider, phone_number: e.target.value })
-                }
+                onChange={(e) => setNewRider({ ...newRider, phone_number: e.target.value })}
               />
               <input
                 type="password"
                 placeholder="Password"
                 required
                 className="input bg-white/5 border-white/10 !px-4"
-                onChange={(e) =>
-                  setNewRider({ ...newRider, password: e.target.value })
-                }
+                onChange={(e) => setNewRider({ ...newRider, password: e.target.value })}
               />
               <div className="flex gap-3 !pt-4">
                 <button
@@ -234,14 +213,14 @@ export default function AdminRiders() {
           >
             <div className="flex items-start justify-between !mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
-                  {rider.username[0].toUpperCase()}
-                </div>
+                <UserAvatar
+                  user={rider as any}
+                  size="md"
+                  className="ring-2 ring-primary/5 shadow-inner"
+                />
                 <div>
                   <h3 className="font-bold">{rider.username}</h3>
-                  <p className="text-xs text-muted font-mono">
-                    {rider.custom_id}
-                  </p>
+                  <p className="text-xs text-muted font-mono">{rider.custom_id}</p>
                 </div>
               </div>
               <div
@@ -258,11 +237,7 @@ export default function AdminRiders() {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted">Status</span>
                 <span
-                  className={
-                    rider.active_tasks > 0
-                      ? "text-primary font-medium"
-                      : "text-muted"
-                  }
+                  className={rider.active_tasks > 0 ? "text-primary font-medium" : "text-muted"}
                 >
                   {rider.active_tasks > 0
                     ? `${rider.active_tasks} Active Tasks`
@@ -281,9 +256,7 @@ export default function AdminRiders() {
               </div>
               <select
                 className="input text-sm bg-white/5 border-white/10 !px-3 !py-2 rounded-lg"
-                onChange={(e) =>
-                  e.target.value && handleAssign(e.target.value, rider.id)
-                }
+                onChange={(e) => e.target.value && handleAssign(e.target.value, rider.id)}
                 value=""
               >
                 <option value="" disabled>
@@ -378,8 +351,7 @@ export default function AdminRiders() {
                       <td className="!px-6 !py-4">
                         <button
                           onClick={() =>
-                            selectedRiderId &&
-                            handleAssign(order.order_id, Number(selectedRiderId))
+                            selectedRiderId && handleAssign(order.order_id, Number(selectedRiderId))
                           }
                           disabled={!selectedRiderId || assigningOrderId === order.order_id}
                           className="btn btn-primary btn-sm disabled:opacity-60"

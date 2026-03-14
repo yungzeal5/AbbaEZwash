@@ -61,11 +61,11 @@ export default function LoginPage() {
             >
               <LogIn className="w-5 h-5" />
             </div>
-            <h1 className="text-title" style={{ letterSpacing: "0.05em" }}>
+            <h1 className="text-title text-white" style={{ letterSpacing: "0.05em" }}>
               Welcome Back
             </h1>
             <p className="text-caption" style={{ color: "var(--text-muted)" }}>
-              Luxury laundry care is just a sign-in away
+              EZWash laundry care is just a sign-in away
             </p>
           </div>
 

@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import UserAvatar from "@/components/ui/UserAvatar";
 
 interface User {
   id: number;
@@ -30,6 +31,7 @@ interface User {
   streak_count: number;
   created_at: string;
   custom_id: string;
+  profile_picture?: string;
 }
 
 export default function AdminUsersPage() {
@@ -70,11 +72,7 @@ export default function AdminUsersPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const handleDeleteUser = async (id: number) => {
     if (deletingId) return;
-    if (
-      !confirm(
-        "Are you sure you want to delete this user? This action cannot be undone.",
-      )
-    )
+    if (!confirm("Are you sure you want to delete this user? This action cannot be undone."))
       return;
 
     setDeletingId(id);
@@ -84,12 +82,16 @@ export default function AdminUsersPage() {
       });
       fetchUsers();
     } catch (err: unknown) {
-      if (typeof err === "object" && err !== null && "status" in err && (err as { status: number }).status === 404) {
+      if (
+        typeof err === "object" &&
+        err !== null &&
+        "status" in err &&
+        (err as { status: number }).status === 404
+      ) {
         alert("This user no longer exists. Refreshing the list.");
         fetchUsers();
       } else {
-        const errorMessage =
-          err instanceof Error ? err.message : "Failed to delete user";
+        const errorMessage = err instanceof Error ? err.message : "Failed to delete user";
         alert(errorMessage);
       }
     } finally {
@@ -115,8 +117,7 @@ export default function AdminUsersPage() {
       });
       fetchUsers();
     } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to register user";
+      const errorMessage = err instanceof Error ? err.message : "Failed to register user";
       alert(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -151,12 +152,8 @@ export default function AdminUsersPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-white !mb-1 tracking-tight">
-            Users
-          </h1>
-          <p className="text-muted text-sm">
-            Manage and monitor all platform members.
-          </p>
+          <h1 className="text-3xl font-bold text-muted !mb-1 tracking-tight">Users</h1>
+          <p className="text-muted text-sm">Manage and monitor all platform members.</p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
@@ -167,7 +164,7 @@ export default function AdminUsersPage() {
               placeholder="Search by name, email or ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full !pl-10 !pr-4 !py-2 bg-white/5 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-primary transition-colors"
+              className="w-full !pl-10 !pr-4 !py-2 bg-black/5 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-primary transition-colors"
             />
           </div>
 
@@ -207,7 +204,7 @@ export default function AdminUsersPage() {
           <div className="hidden md:block card glass-panel overflow-hidden border-white/5">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-white/5 bg-white/[0.02]">
+                <tr className="border-b border-white/5 bg-black/[0.05]">
                   <th className="!p-5 text-[11px] font-bold text-muted uppercase tracking-widest leading-none">
                     User
                   </th>
@@ -231,10 +228,7 @@ export default function AdminUsersPage() {
               <tbody className="divide-y divide-white/5">
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td
-                      colSpan={6}
-                      className="!p-20 text-center text-muted italic"
-                    >
+                    <td colSpan={6} className="!p-20 text-center text-muted italic">
                       No users match your criteria.
                     </td>
                   </tr>
@@ -245,18 +239,18 @@ export default function AdminUsersPage() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: i * 0.03 }}
-                      className="hover:bg-white/5 transition-colors group"
+                      className="hover:bg-black/5 transition-colors group"
                     >
                       <td className="!p-5">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center font-bold text-sm text-white shadow-inner">
-                            {user.username.charAt(0).toUpperCase()}
-                          </div>
+                          <UserAvatar
+                            user={user as any}
+                            size="sm"
+                            className="ring-2 ring-primary/5 shadow-inner"
+                          />
                           <div className="flex flex-col">
-                            <span className="font-bold text-sm text-white">
-                              {user.username}
-                            </span>
-                            <span className="text-[10px] font-mono text-muted uppercase tracking-wider">
+                            <span className="font-bold text-sm text-muted">{user.username}</span>
+                            <span className="text-[10px] font-mono text-black/70 uppercase tracking-wider">
                               {user.custom_id}
                             </span>
                           </div>
@@ -287,9 +281,7 @@ export default function AdminUsersPage() {
                         <div className="inline-flex flex-col items-center">
                           <div className="flex items-center gap-1.5 text-primary">
                             <Award className="w-4 h-4" />
-                            <span className="font-bold text-lg">
-                              {user.streak_count}
-                            </span>
+                            <span className="font-bold text-lg">{user.streak_count}</span>
                           </div>
                         </div>
                       </td>
@@ -343,13 +335,13 @@ export default function AdminUsersPage() {
                 <div key={user.id} className="card glass-panel !p-5 space-y-4">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-lg text-primary">
-                        {user.username.charAt(0).toUpperCase()}
-                      </div>
+                      <UserAvatar
+                        user={user as any}
+                        size="md"
+                        className="ring-2 ring-primary/5 shadow-inner"
+                      />
                       <div className="flex flex-col">
-                        <h3 className="font-bold text-white">
-                          {user.username}
-                        </h3>
+                        <h3 className="font-bold text-white">{user.username}</h3>
                         <span className="text-[10px] font-mono text-muted uppercase tracking-wider">
                           {user.custom_id}
                         </span>
@@ -382,10 +374,7 @@ export default function AdminUsersPage() {
                         {user.streak_count} Streak
                       </span>
                     </div>
-                    <Link
-                      href={`/admin/users/${user.id}`}
-                      className="btn btn-xs btn-secondary"
-                    >
+                    <Link href={`/admin/users/${user.id}`} className="btn btn-xs btn-secondary">
                       View Profile
                     </Link>
                   </div>
@@ -404,16 +393,12 @@ export default function AdminUsersPage() {
             animate={{ opacity: 1, scale: 1 }}
             className="card w-full max-w-lg !p-8 glass-panel border-white/10"
           >
-            <h2 className="text-2xl font-bold text-white !mb-6">
-              Register New User
-            </h2>
+            <h2 className="text-2xl font-bold text-white !mb-6">Register New User</h2>
 
             <form onSubmit={handleRegisterUser} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs text-muted uppercase font-bold !px-1">
-                    Username
-                  </label>
+                  <label className="text-xs text-muted uppercase font-bold !px-1">Username</label>
                   <input
                     required
                     type="text"
@@ -428,40 +413,30 @@ export default function AdminUsersPage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-muted uppercase font-bold !px-1">
-                    Email
-                  </label>
+                  <label className="text-xs text-muted uppercase font-bold !px-1">Email</label>
                   <input
                     required
                     type="email"
                     value={newUserData.email}
-                    onChange={(e) =>
-                      setNewUserData({ ...newUserData, email: e.target.value })
-                    }
+                    onChange={(e) => setNewUserData({ ...newUserData, email: e.target.value })}
                     className="w-full bg-white/5 border border-white/10 rounded-xl !px-4 !py-2.5 text-sm"
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs text-muted uppercase font-bold !px-1">
-                  Password
-                </label>
+                <label className="text-xs text-muted uppercase font-bold !px-1">Password</label>
                 <input
                   required
                   type="password"
                   value={newUserData.password}
-                  onChange={(e) =>
-                    setNewUserData({ ...newUserData, password: e.target.value })
-                  }
+                  onChange={(e) => setNewUserData({ ...newUserData, password: e.target.value })}
                   className="w-full bg-white/5 border border-white/10 rounded-xl !px-4 !py-2.5 text-sm"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs text-muted uppercase font-bold !px-1">
-                  Phone Number
-                </label>
+                <label className="text-xs text-muted uppercase font-bold !px-1">Phone Number</label>
                 <input
                   type="text"
                   value={newUserData.phone_number}
@@ -476,22 +451,16 @@ export default function AdminUsersPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs text-muted uppercase font-bold !px-1">
-                  Role
-                </label>
+                <label className="text-xs text-muted uppercase font-bold !px-1">Role</label>
                 <select
                   value={newUserData.role}
-                  onChange={(e) =>
-                    setNewUserData({ ...newUserData, role: e.target.value })
-                  }
+                  onChange={(e) => setNewUserData({ ...newUserData, role: e.target.value })}
                   className="w-full bg-black/40 border border-white/10 rounded-xl !px-4 !py-2.5 text-sm text-white"
                 >
                   <option value="CUSTOMER">Customer</option>
                   <option value="RIDER">Rider</option>
                   <option value="AMBASSADOR">Ambassador</option>
-                  {currentUser?.role === "SUPER_ADMIN" && (
-                    <option value="ADMIN">Admin</option>
-                  )}
+                  {currentUser?.role === "SUPER_ADMIN" && <option value="ADMIN">Admin</option>}
                   {currentUser?.role === "SUPER_ADMIN" && (
                     <option value="SUPER_ADMIN">Super Admin</option>
                   )}

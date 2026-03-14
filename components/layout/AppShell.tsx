@@ -19,12 +19,12 @@ export default function AppShell({ children }: AppShellProps) {
   const isHomePage = pathname === "/";
 
   return (
-    <div className="relative min-h-screen bg-background">
+    <div className="relative min-h-screen">
       {/* Desktop Navigation */}
       {!isExcludedRoute && <Navbar />}
 
       {/* Main Content */}
-      <main className={`page-wrapper ${isHomePage ? "no-padding-top" : ""}`}>{children}</main>
+      <main>{children}</main>
 
       {/* Mobile Navigation */}
       {!isExcludedRoute && <TabBar />}

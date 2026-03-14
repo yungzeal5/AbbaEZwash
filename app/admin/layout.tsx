@@ -19,6 +19,7 @@ import {
   Star,
   MessageSquare,
 } from "lucide-react";
+import UserAvatar from "@/components/ui/UserAvatar";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, logout } = useAuth();
@@ -38,7 +39,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (loading || !user) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black">
+      <div className="flex items-center justify-center min-h-screen bg-slate-50">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
       </div>
     );
@@ -47,6 +48,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const links = [
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
+    { href: "/admin/catalog", label: "Catalog", icon: Star }, // Reusing Star or adding Archive
     { href: "/admin/riders", label: "Riders", icon: Bike },
     { href: "/admin/ambassadors", label: "Ambassadors", icon: Users },
     { href: "/admin/users", label: "Users", icon: Users },
@@ -56,62 +58,77 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   return (
-    <div className="flex min-h-screen bg-black text-white font-sans overflow-hidden">
+    <div className="flex min-h-screen bg-slate-100 text-slate-900 font-sans overflow-hidden">
       {/* Sidebar */}
       <motion.aside
         initial={false}
         animate={{ width: isSidebarOpen ? 280 : 80 }}
-        className="flex-shrink-0 border-r border-white/10 glass-panel z-20 hidden md:block relative transition-all duration-300 ease-in-out"
-        style={{
-          background: "rgba(10, 10, 10, 0.6)",
-          backdropFilter: "blur(20px)",
-        }}
+        className="shrink-0 border-r border-slate-200 bg-white/70 backdrop-blur-xl z-20 hidden md:block relative transition-all duration-300 ease-in-out"
       >
         <div className="flex flex-col h-full p-4">
           {/* Header */}
-          <div className="flex items-center gap-3 mb-8 mt-10 px-2 overflow-hidden relative min-h-[40px]">
-            <Image
-              src="/logo/AbbaEzwash.png"
-              alt="Abba EZWash Logo"
-              width={180}
-              height={72}
-              className="h-18 w-auto object-contain"
-              priority
-            />{" "}
-            <AnimatePresence>
-              {isSidebarOpen && (
+          <div className="flex flex-col gap-6 mb-8 mt-6 px-2 overflow-hidden relative min-h-[40px]">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <Image
+                  src="/logo/AbbaEzwash.png"
+                  alt="Abba EZWash Logo"
+                  width={140}
+                  height={56}
+                  className="h-10 w-auto object-contain"
+                  priority
+                />
+              </div>
+              <button
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className={`p-2 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-primary transition-all border border-slate-200 ${
+                  !isSidebarOpen ? "hidden" : ""
+                }`}
+              >
+                <ChevronRight className="w-5 h-5 rotate-180" />
+              </button>
+            </div>
+
+            <AnimatePresence mode="wait">
+              {isSidebarOpen ? (
                 <motion.div
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  className="flex flex-col"
+                  key="open"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100 shadow-sm"
                 >
-                  <span className="text-xl font-bold tracking-tight whitespace-nowrap">
-                    Abba <span className="text-primary">Admin</span>
-                  </span>
-                  <span className="text-[10px] text-muted font-mono tracking-widest uppercase">
-                    Dashboard
-                  </span>
+                  <UserAvatar user={user} size="md" className="ring-2 ring-white shadow-sm" />
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-sm font-bold text-slate-900 truncate">
+                      {user.first_name || user.username}
+                    </span>
+                    <span className="text-[10px] text-primary font-black tracking-widest uppercase">
+                      {user.role.replace("_", " ")}
+                    </span>
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="closed"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex flex-col items-center gap-4"
+                >
+                  <button
+                    onClick={() => setIsSidebarOpen(true)}
+                    className="p-2 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-primary transition-all border border-slate-200"
+                  >
+                    <Menu className="w-6 h-6" />
+                  </button>
+                  <UserAvatar user={user} size="sm" className="ring-2 ring-white shadow-sm" />
                 </motion.div>
               )}
             </AnimatePresence>
-            {/* Toggle Button */}
-            <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className={`absolute top-1/2 -translate-y-1/2 p-2 rounded-lg bg-white/5 hover:bg-white/10 text-muted hover:text-white transition-all border border-white/5 ${
-                isSidebarOpen ? "right-0" : "left-[60px]"
-              }`}
-            >
-              {isSidebarOpen ? (
-                <ChevronRight className="w-6 h-6 rotate-180" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
-            </button>
           </div>
-
           {/* Nav */}
-          <nav className="flex-1 space-y-1">
+          <nav className="flex-1 space-y-1 mt-6!">
             {links.map((link) => {
               const Icon = link.icon;
               const isActive = pathname === link.href;
@@ -120,15 +137,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex items-center gap-3 !px-3 !py-2.5 rounded-lg transition-all group relative overflow-hidden ${
+                  className={`flex items-center gap-3 !px-4 !py-3 rounded-2xl transition-all group relative overflow-hidden ${
                     isActive
-                      ? "bg-white/10 text-white"
-                      : "text-muted hover:bg-white/5 hover:text-white"
+                      ? "bg-primary text-white shadow-lg shadow-primary/20"
+                      : "text-slate-500 hover:bg-slate-50 hover:text-primary"
                   }`}
                 >
                   <Icon
                     className={`w-6 h-6 shrink-0 transition-colors ${
-                      isActive ? "text-white" : "group-hover:text-white"
+                      isActive ? "text-white" : "group-hover:text-primary"
                     }`}
                   />
                   <AnimatePresence mode="wait">
@@ -137,7 +154,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="font-medium text-sm whitespace-nowrap overflow-hidden"
+                        className="font-bold text-sm whitespace-nowrap overflow-hidden tracking-tight"
                       >
                         {link.label}
                       </motion.span>
@@ -147,50 +164,64 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               );
             })}
           </nav>
-          {/* Footer User spacer */}
-          <div className="mt-auto !pt-4 border-t border-white/5 opacity-0">
-            <div className="h-10"></div>
+          <div className="mt-auto px-2!">
+            <button
+              onClick={logout}
+              className="flex items-center gap-3 w-full !px-4 !py-3 rounded-2xl text-red-500 hover:bg-red-50 transition-all font-bold text-sm"
+            >
+              <LogOut className="w-6 h-6" />
+              <AnimatePresence>
+                {isSidebarOpen && (
+                  <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                    Sign Out
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </button>
           </div>
         </div>
       </motion.aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#050505]">
-        {/* Mobile Header (Visible only on small screens) */}
-        <div className="md:hidden flex items-center justify-between p-4 border-b border-white/10 bg-black/50 backdrop-blur-xl sticky top-0 z-30">
+      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50">
+        {/* Mobile Header */}
+        <div className="md:hidden flex items-center justify-between p-4 border-b border-slate-200 bg-white/80 backdrop-blur-xl sticky top-0 z-30">
           <div className="flex items-center gap-3">
             <Image
               src="/logo/AbbaEzwash.png"
               alt="Abba EZWash Logo"
-              width={180}
-              height={72}
-              className="h-18 w-auto object-contain"
+              width={140}
+              height={56}
+              className="h-10 w-auto object-contain"
               priority
             />{" "}
-            <span className="font-bold">Abba Admin</span>
+            <span className="font-black text-sm text-slate-900">ADMIN</span>
           </div>
+          <button onClick={logout} className="p-2 text-slate-400">
+            <LogOut className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar !p-6 md:!p-8 lg:!p-10 !pb-36 md:!pb-10">
+        <div className="flex-1 overflow-y-auto custom-scrollbar !p-6 md:!p-10 !pb-36 md:!pb-12 text-slate-900">
           <div className="max-w-7xl !mx-auto !w-full">{children}</div>
         </div>
 
         {/* Mobile Bottom Navigation */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-black/80 backdrop-blur-xl border-t border-white/10 flex items-center justify-around !px-2 z-40">
-          {links.map((link) => {
+        <div className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white/95 backdrop-blur-xl border-t border-slate-200 flex items-center justify-around !px-4 z-40 shadow-[0_-10px_30px_rgba(0,0,0,0.03)]">
+          {links.slice(0, 5).map((link) => {
             const Icon = link.icon;
             const isActive = pathname === link.href;
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex flex-col items-center gap-1 !p-2 transition-all ${
-                  isActive ? "text-primary scale-110" : "text-muted"
+                className={`flex flex-col items-center gap-1.5 !px-3 !py-2 transition-all rounded-xl ${
+                  isActive ? "text-primary bg-primary/5 font-black" : "text-slate-400"
                 }`}
               >
-                <Icon className="w-5 h-5" />
-                <span className="text-[10px] font-bold uppercase tracking-tight">{link.label}</span>
+                <Icon className={`w-5 h-5 ${isActive ? "text-primary" : ""}`} />
+                <span className="text-[9px] uppercase tracking-wider">{link.label}</span>
               </Link>
             );
           })}

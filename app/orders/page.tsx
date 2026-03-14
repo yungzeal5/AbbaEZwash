@@ -1,73 +1,91 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Plus, Minus, ArrowRight, LogIn, Loader2 } from "lucide-react";
+import { Check, Plus, Minus, ArrowRight, LogIn, Loader2, Search, Filter } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { apiRequest } from "@/lib/api";
 import { formatMoney } from "@/lib/currency";
 import { useRouter } from "next/navigation";
 
-const laundryItems = [
-  { id: 1, name: "T-Shirt", price: 3 },
-  { id: 2, name: "Shirt (Formal)", price: 5 },
-  { id: 3, name: "Pants", price: 6 },
-  { id: 4, name: "Jeans", price: 7 },
-  { id: 5, name: "Dress", price: 10 },
-  { id: 6, name: "Suit (2-piece)", price: 20 },
-  { id: 7, name: "Jacket", price: 12 },
-  { id: 8, name: "Sweater", price: 8 },
-  { id: 9, name: "Hoodie", price: 8 },
-  { id: 10, name: "Bedsheet (Single)", price: 10 },
-  { id: 11, name: "Bedsheet (Double)", price: 15 },
-  { id: 12, name: "Duvet Cover", price: 18 },
-  { id: 13, name: "Towel (Large)", price: 6 },
-  { id: 14, name: "Towel (Small)", price: 4 },
-  { id: 15, name: "Curtain Panel", price: 12 },
-  { id: 16, name: "Blanket", price: 20 },
-];
-
-interface SelectedItem {
-  id: number;
+interface CatalogItem {
   name: string;
   price: number;
-  color: "white" | "colored";
+  category: string;
+  variant?: string | null;
+}
+
+interface SelectedItem extends CatalogItem {
   quantity: number;
   note: string;
+  color: "white" | "colored";
 }
 
 export default function OrdersPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const [selected, setSelected] = useState<Map<number, SelectedItem>>(
-    new Map(),
-  );
-  const [expanded, setExpanded] = useState<number | null>(null);
+
+  const [catalog, setCatalog] = useState<CatalogItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeCategory, setActiveCategory] = useState<string>("All");
+
+  const [selected, setSelected] = useState<Map<string, SelectedItem>>(new Map());
+  const [expanded, setExpanded] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedId, setSubmittedId] = useState<string | null>(null);
 
-  const toggleItem = (item: (typeof laundryItems)[0]) => {
+  useEffect(() => {
+    async function fetchCatalog() {
+      try {
+        const data = await apiRequest("/orders/catalog/");
+        setCatalog(data);
+      } catch (err) {
+        console.error("Failed to fetch catalog:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchCatalog();
+  }, []);
+
+  const categories = useMemo(() => {
+    const cats = new Set(catalog.map((item) => item.category));
+    return ["All", ...Array.from(cats)];
+  }, [catalog]);
+
+  const filteredItems = useMemo(() => {
+    return catalog.filter((item) => {
+      const matchesSearch =
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.category.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = activeCategory === "All" || item.category === activeCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [catalog, searchTerm, activeCategory]);
+
+  const toggleItem = (item: CatalogItem) => {
     const newSelected = new Map(selected);
-    if (newSelected.has(item.id)) {
-      newSelected.delete(item.id);
-      if (expanded === item.id) setExpanded(null);
+    if (newSelected.has(item.name)) {
+      newSelected.delete(item.name);
+      if (expanded === item.name) setExpanded(null);
     } else {
-      newSelected.set(item.id, {
+      newSelected.set(item.name, {
         ...item,
         color: "colored",
         quantity: 1,
         note: "",
       });
-      setExpanded(item.id);
+      setExpanded(item.name);
     }
     setSelected(newSelected);
   };
 
-  const updateItem = (id: number, updates: Partial<SelectedItem>) => {
+  const updateItem = (name: string, updates: Partial<SelectedItem>) => {
     const newSelected = new Map(selected);
-    const item = newSelected.get(id);
+    const item = newSelected.get(name);
     if (item) {
-      newSelected.set(id, { ...item, ...updates });
+      newSelected.set(name, { ...item, ...updates });
       setSelected(newSelected);
     }
   };
@@ -141,15 +159,10 @@ export default function OrdersPage() {
           >
             <Check className="w-6 h-6" />
           </div>
-          <h1
-            className="text-title"
-            style={{ marginBottom: "12px", color: "var(--accent)" }}
-          >
+          <h1 className="text-title" style={{ marginBottom: "12px", color: "var(--accent)" }}>
             Order Placed!
           </h1>
-          <p className="text-body">
-            Your order {submittedId} has been successfully submitted.
-          </p>
+          <p className="text-body">Your order {submittedId} has been successfully submitted.</p>
           <p className="text-caption" style={{ marginTop: "24px" }}>
             Redirecting to history...
           </p>
@@ -164,235 +177,243 @@ export default function OrdersPage() {
       style={{ paddingBottom: selected.size > 0 ? "160px" : undefined }}
     >
       {/* Header */}
-      <section style={{ padding: "24px 0" }}>
+      <section style={{ padding: "24px 0 12px" }}>
         <div className="container">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <p className="text-label" style={{ marginBottom: "8px" }}>
               New Order
             </p>
-            <h1 className="text-title">Select your items</h1>
+            <h1 className="text-title text-gradient">Select your items</h1>
           </motion.div>
         </div>
       </section>
 
+      {/* Search & Categories */}
+      <section className="sticky top-0 bg-white/80 backdrop-blur-md z-40 py-4! border-b border-black/5">
+        <div className="container flex flex-col gap-4">
+          {/* Search Bar */}
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted group-focus-within:text-primary transition-colors" />
+            <input
+              type="text"
+              placeholder="Search for laundry items..."
+              className="input pl-11! bg-slate-50 border-slate-200 hover:border-slate-300 focus:border-primary transition-all rounded-2xl"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          {/* Categories Chips */}
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2!">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`whitespace-nowrap px-4! py-2! rounded-full text-xs font-bold transition-all border ${
+                  activeCategory === cat
+                    ? "bg-primary text-white border-primary shadow-lg shadow-primary/20"
+                    : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Items List */}
-      <section>
+      <section className="mt-6!">
         <div className="container">
           <div
             className="card"
             style={{
               padding: 0,
               overflow: "hidden",
-              background: "rgba(255, 255, 255, 0.02)",
-              border: "1px solid rgba(255, 255, 255, 0.05)",
             }}
           >
-            {laundryItems.map((item, index) => {
-              const isSelected = selected.has(item.id);
-              const selectedItem = selected.get(item.id);
-              const isExpanded = expanded === item.id && isSelected;
+            {isLoading ? (
+              <div className="py-20! flex flex-col items-center justify-center gap-4">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <p className="text-caption">Loading our catalog...</p>
+              </div>
+            ) : filteredItems.length === 0 ? (
+              <div className="py-20! text-center">
+                <p className="text-muted">No items found matching your search.</p>
+              </div>
+            ) : (
+              filteredItems.map((item, index) => {
+                const isSelected = selected.has(item.name);
+                const selectedItem = selected.get(item.name);
+                const isExpanded = expanded === item.name && isSelected;
 
-              return (
-                <motion.div
-                  key={item.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: index * 0.02 }}
-                >
-                  {/* Item Row */}
-                  <button
-                    onClick={() => toggleItem(item)}
-                    className="list-item list-item-interactive w-full"
-                    style={{
-                      justifyContent: "space-between",
-                      borderBottom: isExpanded ? "none" : undefined,
-                    }}
+                return (
+                  <motion.div
+                    key={item.name}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: index * 0.01 }}
                   >
-                    <div className="flex items-center gap-4">
-                      <div
-                        className="flex items-center justify-center"
-                        style={{
-                          width: 20,
-                          height: 20,
-                          borderRadius: 4,
-                          background: isSelected
-                            ? "var(--primary)"
-                            : "rgba(255, 255, 255, 0.05)",
-                          transition: "background 0.15s ease",
-                        }}
-                      >
-                        {isSelected && (
-                          <Check
-                            className="w-3 h-3 text-white"
-                            strokeWidth={3}
-                          />
-                        )}
-                      </div>
-                      <span
-                        style={{
-                          color: isSelected
-                            ? "var(--primary)"
-                            : "var(--text-secondary)",
-                        }}
-                      >
-                        {item.name}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      {selectedItem && selectedItem.quantity > 1 && (
-                        <span className="text-caption">
-                          x{selectedItem.quantity}
-                        </span>
-                      )}
-                      <span
-                        className="price"
-                        style={{
-                          color: isSelected ? "var(--primary)" : "inherit",
-                        }}
-                      >
-                        {formatMoney(
-                          selectedItem
-                            ? item.price * selectedItem.quantity
-                            : item.price,
-                        )}
-                      </span>
-                    </div>
-                  </button>
-
-                  {/* Expanded Options */}
-                  <AnimatePresence>
-                    {isExpanded && selectedItem && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        style={{ overflow: "hidden" }}
-                      >
+                    {/* Item Row */}
+                    <button
+                      onClick={() => toggleItem(item)}
+                      className="list-item list-item-interactive w-full"
+                      style={{
+                        justifyContent: "space-between",
+                        borderBottom: isExpanded ? "none" : "1px solid var(--border-default)",
+                      }}
+                    >
+                      <div className="flex items-center gap-4">
                         <div
+                          className="flex items-center justify-center"
                           style={{
-                            padding: "0 16px 16px",
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 16,
+                            width: 20,
+                            height: 20,
+                            borderRadius: 6,
+                            background: isSelected ? "var(--primary)" : "var(--bg-muted)",
+                            transition: "background 0.15s ease",
                           }}
                         >
-                          {/* Color */}
-                          <div className="flex items-center justify-between">
-                            <span className="text-caption">Color</span>
-                            <div className="toggle-group">
-                              <button
-                                onClick={() =>
-                                  updateItem(item.id, { color: "white" })
-                                }
-                                className={`toggle-btn ${
-                                  selectedItem.color === "white" ? "active" : ""
-                                }`}
-                                style={
-                                  selectedItem.color === "white"
-                                    ? {
-                                        background: "var(--primary)",
-                                        color: "white",
-                                      }
-                                    : {}
-                                }
-                              >
-                                White
-                              </button>
-                              <button
-                                onClick={() =>
-                                  updateItem(item.id, { color: "colored" })
-                                }
-                                className={`toggle-btn ${
-                                  selectedItem.color === "colored"
-                                    ? "active"
-                                    : ""
-                                }`}
-                                style={
-                                  selectedItem.color === "colored"
-                                    ? {
-                                        background: "var(--primary)",
-                                        color: "white",
-                                      }
-                                    : {}
-                                }
-                              >
-                                Colored
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Quantity */}
-                          <div className="flex items-center justify-between">
-                            <span className="text-caption">Quantity</span>
-                            <div className="flex items-center gap-3">
-                              <button
-                                onClick={() =>
-                                  updateItem(item.id, {
-                                    quantity: Math.max(
-                                      1,
-                                      selectedItem.quantity - 1,
-                                    ),
-                                  })
-                                }
-                                className="btn-icon btn-ghost flex items-center justify-center"
-                                style={{
-                                  background: "rgba(255, 255, 255, 0.05)",
-                                }}
-                              >
-                                <Minus className="w-4 h-4" />
-                              </button>
-                              <span
-                                style={{
-                                  width: 32,
-                                  textAlign: "center",
-                                  fontWeight: 500,
-                                }}
-                              >
-                                {selectedItem.quantity}
-                              </span>
-                              <button
-                                onClick={() =>
-                                  updateItem(item.id, {
-                                    quantity: selectedItem.quantity + 1,
-                                  })
-                                }
-                                className="btn-icon btn-ghost flex items-center justify-center"
-                                style={{
-                                  background: "rgba(255, 255, 255, 0.05)",
-                                }}
-                              >
-                                <Plus className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Note */}
-                          <input
-                            type="text"
-                            className="input"
-                            placeholder="Add a note (optional)"
-                            value={selectedItem.note}
-                            onChange={(e) =>
-                              updateItem(item.id, { note: e.target.value })
-                            }
-                            style={{
-                              borderBottom:
-                                "1px solid rgba(255, 255, 255, 0.1)",
-                            }}
-                          />
+                          {isSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
                         </div>
-                        <div className="divider" />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              );
-            })}
+                        <div className="flex flex-col items-start gap-0.5">
+                          <span
+                            style={{
+                              color: isSelected ? "var(--primary)" : "var(--text-primary)",
+                              fontWeight: isSelected ? 600 : 400,
+                            }}
+                          >
+                            {item.name}
+                          </span>
+                          <span className="text-[10px] text-muted uppercase tracking-wider font-bold">
+                            {item.category}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        {selectedItem && selectedItem.quantity > 1 && (
+                          <span className="text-caption">x{selectedItem.quantity}</span>
+                        )}
+                        <span
+                          className="price"
+                          style={{
+                            color: isSelected ? "var(--primary)" : "var(--text-secondary)",
+                          }}
+                        >
+                          {formatMoney(
+                            selectedItem ? item.price * selectedItem.quantity : item.price,
+                          )}
+                        </span>
+                      </div>
+                    </button>
+
+                    {/* Expanded Options */}
+                    <AnimatePresence>
+                      {isExpanded && selectedItem && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          style={{ overflow: "hidden" }}
+                        >
+                          <div
+                            style={{
+                              padding: "0 16px 16px",
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: 16,
+                            }}
+                          >
+                            {/* Color Selection (only for certain items) */}
+                            {(item.name.toLowerCase().includes("shirt") ||
+                              item.name.toLowerCase().includes("hoodie") ||
+                              item.name.toLowerCase().includes("t-shirt")) &&
+                            !item.name.toLowerCase().includes("(white)") &&
+                            !item.name.toLowerCase().includes("(coloured)") ? (
+                              <div className="flex items-center justify-between">
+                                <span className="text-caption">Fabric Treatment</span>
+                                <div className="toggle-group">
+                                  <button
+                                    onClick={() => updateItem(item.name, { color: "white" })}
+                                    className={`toggle-btn ${
+                                      selectedItem.color === "white" ? "active" : ""
+                                    }`}
+                                  >
+                                    White
+                                  </button>
+                                  <button
+                                    onClick={() => updateItem(item.name, { color: "colored" })}
+                                    className={`toggle-btn ${
+                                      selectedItem.color === "colored" ? "active" : ""
+                                    }`}
+                                  >
+                                    Colored
+                                  </button>
+                                </div>
+                              </div>
+                            ) : null}
+
+                            {/* Quantity */}
+                            <div className="flex items-center justify-between">
+                              <span className="text-caption">Quantity</span>
+                              <div className="flex items-center gap-3">
+                                <button
+                                  onClick={() =>
+                                    updateItem(item.name, {
+                                      quantity: Math.max(1, selectedItem.quantity - 1),
+                                    })
+                                  }
+                                  className="btn-icon btn-ghost flex items-center justify-center"
+                                  style={{
+                                    background: "var(--bg-secondary)",
+                                  }}
+                                >
+                                  <Minus className="w-4 h-4" />
+                                </button>
+                                <span
+                                  style={{
+                                    width: 32,
+                                    textAlign: "center",
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  {selectedItem.quantity}
+                                </span>
+                                <button
+                                  onClick={() =>
+                                    updateItem(item.name, {
+                                      quantity: selectedItem.quantity + 1,
+                                    })
+                                  }
+                                  className="btn-icon btn-ghost flex items-center justify-center"
+                                  style={{
+                                    background: "var(--bg-secondary)",
+                                  }}
+                                >
+                                  <Plus className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Note */}
+                            <input
+                              type="text"
+                              className="input"
+                              placeholder="Add a note (optional)"
+                              value={selectedItem.note}
+                              onChange={(e) => updateItem(item.name, { note: e.target.value })}
+                            />
+                          </div>
+                          <div className="divider" />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                );
+              })
+            )}
           </div>
         </div>
       </section>
@@ -417,20 +438,17 @@ export default function OrdersPage() {
               <div
                 className="card flex items-center justify-between"
                 style={{
-                  background: "rgba(10, 10, 10, 0.8)",
+                  background: "rgba(255, 255, 255, 0.9)",
                   backdropFilter: "blur(20px)",
                   border: "1px solid var(--border-gold)",
-                  boxShadow: "0 -10px 40px rgba(0, 0, 0, 0.4)",
+                  boxShadow: "0 10px 40px rgba(0, 0, 0, 0.08)",
                 }}
               >
                 <div>
                   <p className="text-caption">
                     {count} item{count !== 1 ? "s" : ""}
                   </p>
-                  <p
-                    className="price price-lg"
-                    style={{ color: "var(--primary)" }}
-                  >
+                  <p className="price price-lg" style={{ color: "var(--primary)" }}>
                     {formatMoney(total)}
                   </p>
                 </div>

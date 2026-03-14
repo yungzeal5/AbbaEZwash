@@ -7,6 +7,7 @@ import { apiRequest } from "@/lib/api";
 import { formatMoney } from "@/lib/currency";
 import { Search, MoreHorizontal, Check, Bike, Clock, RotateCcw } from "lucide-react";
 import OrderActionModal from "@/components/admin/OrderActionModal";
+import UserAvatar from "@/components/ui/UserAvatar";
 
 interface Order {
   _id: string;
@@ -16,8 +17,9 @@ interface Order {
   total_price: number;
   created_at: string;
   assigned_rider_name?: string;
-  user_id: string; // Add this
+  user_id: string;
   items: Array<Record<string, unknown>>;
+  customer_profile_picture?: string;
 }
 
 export default function AdminOrdersPage() {
@@ -77,9 +79,9 @@ export default function AdminOrdersPage() {
       case "READY":
         return "text-green-500 bg-green-500/10";
       case "DELIVERED":
-        return "text-white bg-white/10";
+        return "text-black bg-black/10";
       default:
-        return "text-muted bg-white/5";
+        return "text-muted bg-black/5";
     }
   };
 
@@ -88,7 +90,7 @@ export default function AdminOrdersPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 !mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white !mb-1">Orders</h1>
+          <h1 className="text-3xl font-bold text-black !mb-1">Orders</h1>
           <p className="text-muted">Manage all service requests.</p>
         </div>
 
@@ -103,7 +105,7 @@ export default function AdminOrdersPage() {
               placeholder="Search orders..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="!pl-10 !pr-4 !py-2 bg-white/5 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-primary w-64"
+              className="!pl-10 !pr-4 !py-2 bg-black/5 border border-black/10 rounded-xl text-sm focus:outline-none focus:border-primary w-64"
             />
           </div>
         </div>
@@ -118,7 +120,7 @@ export default function AdminOrdersPage() {
             className={`!px-4 !py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
               activeTab === tab
                 ? "bg-primary text-white"
-                : "bg-white/5 text-muted hover:bg-white/10"
+                : "bg-black/5 text-muted hover:bg-black/10"
             }`}
           >
             {tab}
@@ -132,15 +134,15 @@ export default function AdminOrdersPage() {
           [...Array(3)].map((_, i) => (
             <div key={i} className="card glass-panel !p-5 animate-pulse">
               <div className="flex justify-between !mb-4">
-                <div className="h-4 w-24 bg-white/5 rounded"></div>
-                <div className="h-4 w-16 bg-white/5 rounded"></div>
+                <div className="h-4 w-24 bg-black/5 rounded"></div>
+                <div className="h-4 w-16 bg-black/5 rounded"></div>
               </div>
-              <div className="h-6 w-32 bg-white/5 rounded !mb-2"></div>
-              <div className="h-4 w-20 bg-white/5 rounded"></div>
+              <div className="h-6 w-32 bg-black/5 rounded !mb-2"></div>
+              <div className="h-4 w-20 bg-black/5 rounded"></div>
             </div>
           ))
         ) : filteredOrders.length === 0 ? (
-          <div className="text-center !py-12 text-muted bg-white/5 rounded-2xl border border-dashed border-white/10">
+          <div className="text-center !py-12 text-muted bg-black/5 rounded-2xl border border-dashed border-black/10">
             No orders found.
           </div>
         ) : (
@@ -151,7 +153,7 @@ export default function AdminOrdersPage() {
                   <span className="text-[10px] font-bold text-muted uppercase tracking-widest leading-none">
                     #{order.order_id}
                   </span>
-                  <h3 className="font-bold text-white">{order.customer_name}</h3>
+                  <h3 className="font-bold text-muted">{order.customer_name}</h3>
                 </div>
                 <span
                   className={`inline-flex items-center !px-2 !py-0.5 rounded text-[9px] font-bold uppercase border ${
@@ -171,10 +173,10 @@ export default function AdminOrdersPage() {
                   <Clock className="w-3.5 h-3.5" />
                   {new Date(order.created_at).toLocaleDateString()}
                 </div>
-                <span className="font-bold text-white">{formatMoney(order.total_price)}</span>
+                <span className="font-bold text-muted">{formatMoney(order.total_price)}</span>
               </div>
 
-              <div className="flex items-center justify-between !pt-4 border-t border-white/5">
+              <div className="flex items-center justify-between !pt-4 border-t border-black/5">
                 <div className="flex items-center gap-2">
                   <Bike className="w-4 h-4 text-primary" />
                   <span className="text-xs text-secondary">
@@ -202,7 +204,7 @@ export default function AdminOrdersPage() {
                     )}
                   <button
                     onClick={() => openModal(order, "STATUS")}
-                    className="!p-2 rounded-lg bg-white/5 hover:bg-white/10 text-muted"
+                    className="!p-2 rounded-lg bg-black/5 hover:bg-black/10 text-muted"
                   >
                     <MoreHorizontal className="w-4 h-4" />
                   </button>
@@ -214,11 +216,11 @@ export default function AdminOrdersPage() {
       </div>
 
       {/* Desktop Table (Hidden on small screens) */}
-      <div className="hidden md:block card glass-panel overflow-hidden border border-white/5">
+      <div className="hidden md:block card glass-panel overflow-hidden border border-black/5">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-white/5 bg-white/[0.02]">
+              <tr className="border-b border-black/5 bg-black/[0.02]">
                 <th className="!p-5 text-[11px] font-bold text-muted uppercase tracking-widest leading-none">
                   Order ID
                 </th>
@@ -242,27 +244,27 @@ export default function AdminOrdersPage() {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-black/5">
               {loading ? (
                 [...Array(5)].map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     <td className="!p-5">
-                      <div className="h-4 w-20 bg-white/5 rounded"></div>
+                      <div className="h-4 w-20 bg-black/5 rounded"></div>
                     </td>
                     <td className="!p-5">
-                      <div className="h-4 w-32 bg-white/5 rounded"></div>
+                      <div className="h-4 w-32 bg-black/5 rounded"></div>
                     </td>
                     <td className="!p-5">
-                      <div className="h-4 w-24 bg-white/5 rounded"></div>
+                      <div className="h-4 w-24 bg-black/5 rounded"></div>
                     </td>
                     <td className="!p-5">
-                      <div className="h-4 w-16 bg-white/5 rounded ml-auto"></div>
+                      <div className="h-4 w-16 bg-black/5 rounded ml-auto"></div>
                     </td>
                     <td className="!p-5">
-                      <div className="h-6 w-24 bg-white/5 rounded-full"></div>
+                      <div className="h-6 w-24 bg-black/5 rounded-full"></div>
                     </td>
                     <td className="!p-5">
-                      <div className="h-4 w-24 bg-white/5 rounded"></div>
+                      <div className="h-4 w-24 bg-black/5 rounded"></div>
                     </td>
                     <td className="!p-5"></td>
                   </tr>
@@ -280,7 +282,7 @@ export default function AdminOrdersPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: i * 0.05 }}
-                    className="hover:bg-white/5 transition-colors group"
+                    className="hover:bg-black/5 transition-colors group"
                   >
                     <td className="!p-5 font-mono text-xs text-secondary font-medium tracking-wide">
                       <span className="text-muted">#</span>
@@ -291,10 +293,13 @@ export default function AdminOrdersPage() {
                         href={`/admin/users/${order.user_id}`}
                         className="flex items-center gap-3 group/link w-fit"
                       >
-                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary group-hover/link:bg-primary group-hover/link:text-white transition-all">
-                          {order.customer_name.charAt(0)}
-                        </div>
-                        <span className="font-medium text-sm text-white group-hover/link:text-primary transition-colors">
+                        <UserAvatar
+                          src={order.customer_profile_picture}
+                          username={order.customer_name}
+                          size="xs"
+                          className="ring-2 ring-primary/20 group-hover/link:ring-primary transition-all"
+                        />
+                        <span className="font-medium text-sm text-black group-hover/link:text-primary transition-colors">
                           {order.customer_name}
                         </span>
                       </Link>
@@ -302,7 +307,7 @@ export default function AdminOrdersPage() {
                     <td className="!p-5 text-sm text-muted font-mono">
                       {new Date(order.created_at).toLocaleDateString()}
                     </td>
-                    <td className="!p-5 font-bold font-mono text-white text-right">
+                    <td className="!p-5 font-bold font-mono text-black text-right">
                       {formatMoney(order.total_price)}
                     </td>
                     <td className="!p-5">
@@ -320,7 +325,7 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="!p-5 text-sm">
                       {order.assigned_rider_name ? (
-                        <div className="flex items-center gap-2 text-white">
+                        <div className="flex items-center gap-2 text-black">
                           <Bike className="w-4 h-4 text-primary" />
                           {order.assigned_rider_name}
                         </div>
@@ -353,7 +358,7 @@ export default function AdminOrdersPage() {
 
                         <button
                           onClick={() => openModal(order, "STATUS")}
-                          className="!p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-muted hover:text-white transition-all border border-white/5 hover:border-white/10"
+                          className="!p-1.5 rounded-lg bg-black/5 hover:bg-black/10 text-muted hover:text-black transition-all border border-black/5 hover:border-black/10"
                           title="Update Status"
                         >
                           <MoreHorizontal className="w-4 h-4" />

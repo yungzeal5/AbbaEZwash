@@ -3,19 +3,10 @@
 import React, { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  Home,
-  Users,
-  Award,
-  LogOut,
-} from "lucide-react";
+import { Home, Users, Award, LogOut, User as UserIcon } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
-export default function AmbassadorLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AmbassadorLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, loading, logout } = useAuth();
   const router = useRouter();
@@ -41,6 +32,11 @@ export default function AmbassadorLayout({
       name: "Earnings",
       path: "/ambassador/earnings",
       icon: <Award size={24} />,
+    },
+    {
+      name: "Profile",
+      path: "/ambassador/profile",
+      icon: <UserIcon size={24} />,
     },
   ];
 
@@ -68,9 +64,7 @@ export default function AmbassadorLayout({
               key={item.path}
               href={item.path}
               className={`flex flex-col items-center gap-1 transition-all duration-300 ${
-                isActive
-                  ? "text-[#0071E3] scale-110"
-                  : "text-[#D2D2D7] hover:text-white"
+                isActive ? "text-[#0071E3] scale-110" : "text-[#D2D2D7] hover:text-white"
               }`}
             >
               <span className="text-2xl">{item.icon}</span>
@@ -93,9 +87,7 @@ export default function AmbassadorLayout({
           <span className="text-2xl">
             <LogOut />
           </span>
-          <span className="text-[10px] font-bold tracking-tight uppercase opacity-70">
-            Logout
-          </span>
+          <span className="text-[10px] font-bold tracking-tight uppercase opacity-70">Logout</span>
         </button>
       </nav>
 

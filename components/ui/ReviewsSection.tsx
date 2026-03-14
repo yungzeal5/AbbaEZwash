@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Star, MessageSquare, User } from "lucide-react";
+import { Star, User } from "lucide-react";
 import { apiRequest } from "@/lib/api";
 
 interface Review {
@@ -66,7 +66,7 @@ export default function ReviewsSection() {
                 ))}
               </div>
 
-              <p className="text-body italic mb-8 grow !ml-2">"{review.comment}"</p>
+              <p className="text-body italic mb-8 grow !ml-2">&ldquo;{review.comment}&rdquo;</p>
 
               <div className="flex items-center gap-4 pt-6 border-t border-white/5">
                 <div className="w-10 h-10 !mt-3 !ml-3 !mb-2 rounded-full bg-primary/20 flex items-center justify-center text-primary">

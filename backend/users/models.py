@@ -19,6 +19,7 @@ class User(AbstractUser):
         default=Role.CUSTOMER
     )
     is_email_verified = models.BooleanField(default=False)
+    profile_picture = models.ImageField(upload_to='profile_pictures/', max_length=500, null=True, blank=True)
     is_online = models.BooleanField(default=False)
     custom_id = models.CharField(max_length=20, unique=True, null=True, blank=True)
     streak_count = models.IntegerField(default=0)

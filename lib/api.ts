@@ -1,7 +1,11 @@
-const API_BASE_URL = "http://127.0.0.1:8000/api";
+export const BACKEND_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000")
+  .replace(/\/+$/, "")
+  .replace(/\/api$/, "");
+const API_BASE_URL = `${BACKEND_URL}/api`;
 
-interface ApiRequestOptions extends RequestInit {
+interface ApiRequestOptions extends Omit<RequestInit, "body"> {
   requiresAuth?: boolean;
+  body?: RequestInit["body"] | object | null;
 }
 
 export class ApiError extends Error {
@@ -16,30 +20,36 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiRequest(
-  endpoint: string,
-  options: ApiRequestOptions = {},
-) {
+export async function apiRequest(endpoint: string, options: ApiRequestOptions = {}) {
   const { requiresAuth = true, ...fetchOptions } = options;
+  const normalizedEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
 
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+  const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
 
   const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    ...(requiresAuth && token && { Authorization: `Bearer ${token}` }),
-    ...options.headers,
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
+    ...(requiresAuth && token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(options.headers ?? {}),
   };
 
-  console.log(`[API] ${fetchOptions.method || "GET"} ${endpoint}`, {
-    requiresAuth,
-    hasToken: !!token,
-    headers,
-  });
+  const body =
+    options.body && typeof options.body === "object" && !(options.body instanceof FormData)
+      ? JSON.stringify(options.body)
+      : options.body;
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  if (process.env.NODE_ENV !== "production") {
+    console.log(`[API] ${fetchOptions.method || "GET"} ${normalizedEndpoint}`, {
+      requiresAuth,
+      hasToken: !!token,
+      headers,
+    });
+  }
+
+  const response = await fetch(`${API_BASE_URL}${normalizedEndpoint}`, {
     ...options,
     headers,
+    body,
   });
 
   if (response.status === 401) {
@@ -52,9 +62,7 @@ export async function apiRequest(
   }
 
   if (!response.ok) {
-    const errorData: Record<string, unknown> = await response
-      .json()
-      .catch(() => ({}));
+    const errorData: Record<string, unknown> = await response.json().catch(() => ({}));
 
     // Handle DRF list of errors or single error
     let errorMessage =
@@ -75,11 +83,7 @@ export async function apiRequest(
       }
     }
 
-    throw new ApiError(
-      errorMessage || "Something went wrong",
-      response.status,
-      errorData,
-    );
+    throw new ApiError(errorMessage || "Something went wrong", response.status, errorData);
   }
 
   return response.json();

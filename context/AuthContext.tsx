@@ -5,6 +5,7 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useCallback,
   ReactNode,
 } from "react";
 import { apiRequest } from "@/lib/api";
@@ -13,8 +14,11 @@ import { useRouter } from "next/navigation";
 export interface User {
   id: number;
   username: string;
+  first_name?: string;
+  last_name?: string;
   email: string;
   role: string;
+  profile_picture?: string;
   phone_number?: string;
   location?: {
     address?: string;
@@ -29,6 +33,7 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  checkAuth: () => Promise<void>;
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
@@ -56,24 +61,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem("access_token");
-      if (token) {
-        try {
-          const userData = await apiRequest("/users/profile/");
-          setUser(userData);
-        } catch (error) {
-          console.error("Failed to fetch user profile:", error);
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("refresh_token");
-        }
+  const checkAuth = useCallback(async () => {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      try {
+        const userData = await apiRequest("/users/profile/");
+        setUser(userData);
+      } catch (error) {
+        console.error("Failed to fetch user profile:", error);
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        setUser(null);
       }
-      setLoading(false);
-    };
-
-    checkAuth();
+    } else {
+      setUser(null);
+    }
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void checkAuth();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [checkAuth]);
 
   const login = async (credentials: LoginCredentials) => {
     // Clear any existing tokens before logging in to prevent stale token issues
@@ -125,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, checkAuth, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
